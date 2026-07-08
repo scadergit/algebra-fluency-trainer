@@ -1,61 +1,70 @@
+import type { ReactNode } from "react";
 import { NavLink } from "react-router-dom";
-import { ReactNode } from "react";
 
-interface Props {
+interface MainLayoutProps {
   children: ReactNode;
 }
 
-export default function MainLayout({ children }: Props) {
-  const linkStyle = ({ isActive }: { isActive: boolean }) => ({
-    color: isActive ? "#2563eb" : "#444",
-    textDecoration: "none",
-    fontWeight: 600,
-  });
+const navItem =
+  "rounded-md px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-200 hover:text-slate-900";
 
+const activeNavItem =
+  "bg-blue-600 text-white hover:bg-blue-700 hover:text-white";
+
+export default function MainLayout({
+  children,
+}: MainLayoutProps) {
   return (
-    <div
-      style={{
-        maxWidth: 1100,
-        margin: "0 auto",
-        padding: 32,
-        fontFamily: "system-ui",
-      }}
-    >
-      <header
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 40,
-        }}
-      >
-        <h2>Algebra Fluency Trainer</h2>
+    <div className="min-h-screen bg-slate-100">
+      <header className="border-b border-slate-200 bg-white shadow-sm">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
+          <h1 className="text-xl font-bold text-slate-900">
+            Algebra Fluency Trainer
+          </h1>
 
-        <nav
-          style={{
-            display: "flex",
-            gap: 24,
-          }}
-        >
-          <NavLink to="/dashboard" style={linkStyle}>
-            Dashboard
-          </NavLink>
+          <nav className="flex gap-2">
+            <NavLink
+              to="/dashboard"
+              className={({ isActive }) =>
+                `${navItem} ${isActive ? activeNavItem : ""}`
+              }
+            >
+              Dashboard
+            </NavLink>
 
-          <NavLink to="/practice" style={linkStyle}>
-            Practice
-          </NavLink>
+            <NavLink
+              to="/practice"
+              className={({ isActive }) =>
+                `${navItem} ${isActive ? activeNavItem : ""}`
+              }
+            >
+              Practice
+            </NavLink>
 
-          <NavLink to="/statistics" style={linkStyle}>
-            Statistics
-          </NavLink>
+            <NavLink
+              to="/statistics"
+              className={({ isActive }) =>
+                `${navItem} ${isActive ? activeNavItem : ""}`
+              }
+            >
+              Statistics
+            </NavLink>
 
-          <NavLink to="/settings" style={linkStyle}>
-            Settings
-          </NavLink>
-        </nav>
+            <NavLink
+              to="/settings"
+              className={({ isActive }) =>
+                `${navItem} ${isActive ? activeNavItem : ""}`
+              }
+            >
+              Settings
+            </NavLink>
+          </nav>
+        </div>
       </header>
 
-      {children}
+      <main className="mx-auto max-w-6xl px-6 py-10">
+        {children}
+      </main>
     </div>
   );
 }
