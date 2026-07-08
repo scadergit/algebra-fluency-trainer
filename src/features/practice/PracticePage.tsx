@@ -1,22 +1,19 @@
 import { useEffect, useState } from "react";
 
-import { Card } from "../../shared/components/Card";
 import { Page } from "../../shared/components/Page";
+
+import { generateQuestion } from "../../engine/questionEngine";
+import type { Question } from "../../engine/types";
 
 import { useSettings } from "../settings/SettingsContext";
 
-import { generateQuestion } from "../../engine/questionEngine";
-
-import type { Question } from "../../engine/types";
+import QuestionCard from "./components/QuestionCard";
 
 export default function PracticePage() {
   const { settings } = useSettings();
 
   const [question, setQuestion] =
     useState<Question>();
-
-  const [answer, setAnswer] =
-    useState("");
 
   const [correct, setCorrect] =
     useState(0);
@@ -30,20 +27,22 @@ export default function PracticePage() {
 
   function nextQuestion() {
     setQuestion(generateQuestion(settings));
-    setAnswer("");
   }
 
-  function checkAnswer() {
-    if (!question) {
-      return;
-    }
-
+  function correctAnswer() {
+    setCorrect((value) => value + 1);
     setAttempted((value) => value + 1);
 
-    if (answer.trim() === question.answer) {
-      setCorrect((value) => value + 1);
-    }
+    nextQuestion();
+  }
 
+  function incorrectAnswer() {
+    setAttempted((value) => value + 1);
+
+    nextQuestion();
+  }
+
+  function skipQuestion() {
     nextQuestion();
   }
 
@@ -53,78 +52,42 @@ export default function PracticePage() {
 
   return (
     <Page title="Practice">
-      <Card>
-        <div className="space-y-8">
 
-          <div>
+      <QuestionCard
+        question={question}
+        onCorrect={correctAnswer}
+        onIncorrect={incorrectAnswer}
+        onSkip={skipQuestion}
+      />
 
-            <div className="text-sm text-slate-500">
-              {question.topic}
-            </div>
+      <div className="mt-8 rounded-xl bg-white p-6 shadow-sm">
 
-            <div className="mt-2 text-5xl font-bold">
-              {question.prompt} =
-            </div>
+        <div className="text-lg">
+          Correct: {correct}
+        </div>
 
-          </div>
+        <div className="text-lg">
+          Attempted: {attempted}
+        </div>
 
-          <input
-            className="w-full rounded-lg border border-slate-300 p-3 text-2xl"
-            value={answer}
-            onChange={(event) =>
-              setAnswer(event.target.value)
-            }
-            onKeyDown={(event) => {
-              if (event.key === "Enter") {
-                checkAnswer();
-              }
-            }}
-            autoFocus
-          />
+        <div className="text-lg">
 
-          <div className="flex gap-3">
+          Accuracy:{" "}
 
-            <button
-              className="rounded-lg bg-blue-600 px-6 py-3 font-medium text-white hover:bg-blue-700"
-              onClick={checkAnswer}
-            >
-              Check
-            </button>
+          {attempted === 0
+            ? 0
+            : Math.round(
+                (correct /
+                  attempted) *
+                  100,
+              )}
 
-            <button
-              className="rounded-lg border border-slate-300 px-6 py-3"
-              onClick={nextQuestion}
-            >
-              Skip
-            </button>
-
-          </div>
-
-          <div className="border-t pt-6">
-
-            <div>
-              Correct: {correct}
-            </div>
-
-            <div>
-              Attempted: {attempted}
-            </div>
-
-            <div>
-              Accuracy:{" "}
-              {attempted === 0
-                ? 0
-                : Math.round(
-                    (correct / attempted) *
-                      100,
-                  )}
-              %
-            </div>
-
-          </div>
+          %
 
         </div>
-      </Card>
+
+      </div>
+
     </Page>
   );
 }
