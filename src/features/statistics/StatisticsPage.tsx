@@ -1,9 +1,12 @@
+import { Card } from "../../shared/components/Card";
+import { Page } from "../../shared/components/Page";
+
 export default function StatisticsPage() {
   return (
-    <section className="rounded-xl bg-white p-8 shadow">
-      <h2 className="text-3xl font-bold">
-        Statistics
-      </h2>
-    </section>
+    <Page title="Statistics">
+      <Card>
+        <p>Statistics will appear here.</p>
+      </Card>
+    </Page>
   );
 }
