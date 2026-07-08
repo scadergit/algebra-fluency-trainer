@@ -1,9 +1,12 @@
 import type { AppSettings } from "../shared/types/settings";
 
-import { generateIntegerArithmetic } from "./generators/integerArithmetic";
+import { randomGenerator } from "./registry/generatorRegistry";
 
 export function generateQuestion(
   settings: AppSettings,
 ) {
-  return generateIntegerArithmetic(settings);
+  const generator =
+    randomGenerator();
+
+  return generator(settings);
 }
