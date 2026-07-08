@@ -1,9 +1,17 @@
 import type { ReactNode } from "react";
 
-interface Props {
+import { SettingsProvider } from "../features/settings/SettingsContext";
+
+interface ProvidersProps {
   children: ReactNode;
 }
 
-export default function Providers({ children }: Props) {
-  return <>{children}</>;
+export default function Providers({
+  children,
+}: ProvidersProps) {
+  return (
+    <SettingsProvider>
+      {children}
+    </SettingsProvider>
+  );
 }
