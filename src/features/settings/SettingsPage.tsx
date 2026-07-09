@@ -8,37 +8,79 @@ export default function SettingsPage() {
 
   return (
     <Page title="Settings">
-      <Card>
-        <div className="space-y-6">
-          <div>
-            <label className="block font-medium">
-              Maximum Number
-            </label>
+      <div className="space-y-6">
 
-            <input
-              type="range"
-              min={5}
-              max={20}
-              value={settings.maxNumber}
-              onChange={(event) =>
-                setSettings({
-                  ...settings,
-                  maxNumber: Number(event.target.value),
-                })
-              }
-            />
+        <Card>
 
-            <div>{settings.maxNumber}</div>
+          <h2 className="mb-4 text-xl font-semibold">
+            Practice
+          </h2>
+
+          <label className="block font-medium">
+            Practice Mode
+          </label>
+
+          <select
+            className="mt-2 rounded-lg border border-slate-300 p-2"
+            value={settings.practiceMode}
+            onChange={(event) =>
+              setSettings({
+                ...settings,
+                practiceMode: event.target
+                  .value as typeof settings.practiceMode,
+              })
+            }
+          >
+            <option value="mixed">Mixed</option>
+            <option value="addition">
+              Addition
+            </option>
+            <option value="subtraction">
+              Subtraction
+            </option>
+          </select>
+
+        </Card>
+
+        <Card>
+
+          <h2 className="mb-4 text-xl font-semibold">
+            Numbers
+          </h2>
+
+          <label className="block font-medium">
+            Maximum Number
+          </label>
+
+          <input
+            className="mt-2 w-full"
+            type="range"
+            min={5}
+            max={20}
+            value={settings.maxNumber}
+            onChange={(event) =>
+              setSettings({
+                ...settings,
+                maxNumber: Number(event.target.value),
+              })
+            }
+          />
+
+          <div className="mt-1">
+            {settings.maxNumber}
           </div>
 
-          <label className="flex items-center gap-3">
+          <label className="mt-6 flex items-center gap-3">
             <input
               type="checkbox"
-              checked={settings.allowNegativeNumbers}
+              checked={
+                settings.allowNegativeNumbers
+              }
               onChange={(event) =>
                 setSettings({
                   ...settings,
-                  allowNegativeNumbers: event.target.checked,
+                  allowNegativeNumbers:
+                    event.target.checked,
                 })
               }
             />
@@ -46,29 +88,15 @@ export default function SettingsPage() {
             Allow Negative Numbers
           </label>
 
-          <label className="flex items-center gap-3">
-            <input
-              type="checkbox"
-              checked={settings.allowNegativeAnswers}
-              onChange={(event) =>
-                setSettings({
-                  ...settings,
-                  allowNegativeAnswers: event.target.checked,
-                })
-              }
-            />
-
-            Allow Negative Answers
-          </label>
-
-          <label className="flex items-center gap-3">
+          <label className="mt-3 flex items-center gap-3">
             <input
               type="checkbox"
               checked={settings.allowFractions}
               onChange={(event) =>
                 setSettings({
                   ...settings,
-                  allowFractions: event.target.checked,
+                  allowFractions:
+                    event.target.checked,
                 })
               }
             />
@@ -76,22 +104,51 @@ export default function SettingsPage() {
             Allow Fractions
           </label>
 
-          <label className="flex items-center gap-3">
+          <label className="mt-3 flex items-center gap-3">
             <input
               type="checkbox"
               checked={settings.allowDecimals}
               onChange={(event) =>
                 setSettings({
                   ...settings,
-                  allowDecimals: event.target.checked,
+                  allowDecimals:
+                    event.target.checked,
                 })
               }
             />
 
             Allow Decimals
           </label>
-        </div>
-      </Card>
+
+        </Card>
+
+        <Card>
+
+          <h2 className="mb-4 text-xl font-semibold">
+            Answers
+          </h2>
+
+          <label className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              checked={
+                settings.allowNegativeAnswers
+              }
+              onChange={(event) =>
+                setSettings({
+                  ...settings,
+                  allowNegativeAnswers:
+                    event.target.checked,
+                })
+              }
+            />
+
+            Allow Negative Answers
+          </label>
+
+        </Card>
+
+      </div>
     </Page>
   );
 }

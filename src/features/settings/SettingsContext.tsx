@@ -24,6 +24,8 @@ const defaultSettings: AppSettings = {
 
   allowFractions: false,
   allowDecimals: false,
+
+  practiceMode: "mixed",
 };
 
 const SettingsContext =

@@ -6,7 +6,7 @@ export function generateQuestion(
   settings: AppSettings,
 ) {
   const generator =
-    randomGenerator();
+    randomGenerator(settings);
 
   return generator(settings);
 }

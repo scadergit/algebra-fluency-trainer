@@ -8,12 +8,27 @@ export type Generator = (
   settings: AppSettings,
 ) => Question;
 
-const generators: Generator[] = [
-  generateAddition,
-  generateSubtraction,
-];
+const generatorMap = {
+  addition: generateAddition,
+  subtraction: generateSubtraction,
+};
 
-export function randomGenerator(): Generator {
+export function randomGenerator(
+  settings: AppSettings,
+): Generator {
+  if (settings.practiceMode === "addition") {
+    return generateAddition;
+  }
+
+  if (settings.practiceMode === "subtraction") {
+    return generateSubtraction;
+  }
+
+  const generators = [
+    generateAddition,
+    generateSubtraction,
+  ];
+
   const index = Math.floor(
     Math.random() * generators.length,
   );
