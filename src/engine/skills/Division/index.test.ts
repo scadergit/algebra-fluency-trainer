@@ -1,24 +1,20 @@
 import { describe, expect, it } from "vitest";
 
-import { generateDivision } from "./division";
+import { divisionSkill } from "./index";
 
-describe("Division Generator", () => {
+describe("Division Skill", () => {
   it("always produces an integer answer", () => {
     const settings = {
       maxNumber: 9,
-
-      allowNegativeNumbers: false,
       allowNegativeAnswers: false,
-
-      allowFractions: false,
-      allowDecimals: false,
-
       enabledSkills: [],
+      allowDecimals: false,
+      allowFractions: false,
     };
 
     for (let i = 0; i < 1000; i++) {
       const question =
-        generateDivision(settings);
+        divisionSkill.generate(settings);
 
       const answer = Number(
         question.answer,

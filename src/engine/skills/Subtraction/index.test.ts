@@ -1,24 +1,20 @@
 import { describe, expect, it } from "vitest";
 
-import { generateSubtraction } from "./subtraction";
+import { subtractionSkill } from "./index";
 
-describe("Subtraction Generator", () => {
+describe("Subtraction Skill", () => {
   it("never generates a negative answer when negative answers are disabled", () => {
     const settings = {
       maxNumber: 9,
-
-      allowNegativeNumbers: false,
       allowNegativeAnswers: false,
-
-      allowFractions: false,
-      allowDecimals: false,
-
       enabledSkills: [],
+      allowDecimals: false,
+      allowFractions: false,
     };
 
     for (let i = 0; i < 1000; i++) {
       const question =
-        generateSubtraction(settings);
+        subtractionSkill.generate(settings);
 
       expect(
         Number(question.answer),
