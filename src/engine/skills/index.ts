@@ -1,5 +1,6 @@
-import { arithmeticSkills } from "./arithmetic";
+export type { MathSkill } from "./MathSkill";
 
-export const skills = [
-  ...arithmeticSkills,
-];
+export { additionSkill } from "./Addition";
+export { subtractionSkill } from "./Subtraction";
+export { multiplicationSkill } from "./Multiplication";
+export { divisionSkill } from "./Division";
