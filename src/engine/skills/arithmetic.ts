@@ -1,31 +1,13 @@
-import { generateAddition } from "../generators/addition";
-import { generateDivision } from "../generators/division";
-import { generateMultiplication } from "../generators/multiplication";
-import { generateSubtraction } from "../generators/subtraction";
+import {
+  additionSkill,
+  subtractionSkill,
+  multiplicationSkill,
+  divisionSkill,
+} from ".";
 
 export const arithmeticSkills = [
-  {
-    id: "addition",
-    title: "Addition",
-    category: "Arithmetic",
-    generate: generateAddition,
-  },
-  {
-    id: "subtraction",
-    title: "Subtraction",
-    category: "Arithmetic",
-    generate: generateSubtraction,
-  },
-  {
-    id: "multiplication",
-    title: "Multiplication",
-    category: "Arithmetic",
-    generate: generateMultiplication,
-  },
-  {
-    id: "division",
-    title: "Division",
-    category: "Arithmetic",
-    generate: generateDivision,
-  },
+  additionSkill,
+  subtractionSkill,
+  multiplicationSkill,
+  divisionSkill,
 ];

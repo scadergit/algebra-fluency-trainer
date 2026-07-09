@@ -1,14 +1,15 @@
-import { skills } from "./index";
+import { arithmeticSkills } from "./arithmetic";
 
-export function getSkill(id: string) {
-  return skills.find((skill) => skill.id === id);
-}
+import type { MathSkill } from "./MathSkill";
 
-export function getEnabledSkills(ids: string[]) {
-  return ids
-    .map(getSkill)
-    .filter(
-      (skill): skill is NonNullable<typeof skill> =>
-        skill !== undefined,
-    );
+export function getEnabledSkills(
+  enabledSkillIds: string[],
+): MathSkill[] {
+  if (enabledSkillIds.length === 0) {
+    return arithmeticSkills;
+  }
+
+  return arithmeticSkills.filter((skill) =>
+    enabledSkillIds.includes(skill.id),
+  );
 }
