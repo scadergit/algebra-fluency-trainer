@@ -11,35 +11,81 @@ export default function SettingsPage() {
       <div className="space-y-6">
 
         <Card>
-
           <h2 className="mb-4 text-xl font-semibold">
-            Practice
+            Operations
           </h2>
 
-          <label className="block font-medium">
-            Practice Mode
-          </label>
+          <div className="space-y-3">
 
-          <select
-            className="mt-2 rounded-lg border border-slate-300 p-2"
-            value={settings.practiceMode}
-            onChange={(event) =>
-              setSettings({
-                ...settings,
-                practiceMode: event.target
-                  .value as typeof settings.practiceMode,
-              })
-            }
-          >
-            <option value="mixed">Mixed</option>
-            <option value="addition">
+            <label className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                checked={settings.operations.addition}
+                onChange={(event) =>
+                  setSettings({
+                    ...settings,
+                    operations: {
+                      ...settings.operations,
+                      addition: event.target.checked,
+                    },
+                  })
+                }
+              />
               Addition
-            </option>
-            <option value="subtraction">
-              Subtraction
-            </option>
-          </select>
+            </label>
 
+            <label className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                checked={settings.operations.subtraction}
+                onChange={(event) =>
+                  setSettings({
+                    ...settings,
+                    operations: {
+                      ...settings.operations,
+                      subtraction: event.target.checked,
+                    },
+                  })
+                }
+              />
+              Subtraction
+            </label>
+
+            <label className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                checked={settings.operations.multiplication}
+                onChange={(event) =>
+                  setSettings({
+                    ...settings,
+                    operations: {
+                      ...settings.operations,
+                      multiplication: event.target.checked,
+                    },
+                  })
+                }
+              />
+              Multiplication
+            </label>
+
+            <label className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                checked={settings.operations.division}
+                onChange={(event) =>
+                  setSettings({
+                    ...settings,
+                    operations: {
+                      ...settings.operations,
+                      division: event.target.checked,
+                    },
+                  })
+                }
+              />
+              Division
+            </label>
+
+          </div>
         </Card>
 
         <Card>

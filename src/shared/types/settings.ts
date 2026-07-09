@@ -1,7 +1,9 @@
-export type PracticeMode =
-  | "mixed"
-  | "addition"
-  | "subtraction";
+export interface PracticeOperations {
+  addition: boolean;
+  subtraction: boolean;
+  multiplication: boolean;
+  division: boolean;
+}
 
 export interface AppSettings {
   maxNumber: number;
@@ -12,5 +14,5 @@ export interface AppSettings {
   allowFractions: boolean;
   allowDecimals: boolean;
 
-  practiceMode: PracticeMode;
+  operations: PracticeOperations;
 }
