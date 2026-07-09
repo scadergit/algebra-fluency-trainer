@@ -12,78 +12,45 @@ export default function SettingsPage() {
 
         <Card>
           <h2 className="mb-4 text-xl font-semibold">
-            Operations
+            Skills
           </h2>
 
           <div className="space-y-3">
 
-            <label className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                checked={settings.operations.addition}
-                onChange={(event) =>
-                  setSettings({
-                    ...settings,
-                    operations: {
-                      ...settings.operations,
-                      addition: event.target.checked,
-                    },
-                  })
-                }
-              />
-              Addition
-            </label>
+            {[
+              ["addition", "Addition"],
+              ["subtraction", "Subtraction"],
+              ["multiplication", "Multiplication"],
+              ["division", "Division"],
+            ].map(([id, label]) => (
+              <label
+                key={id}
+                className="flex items-center gap-3"
+              >
+                <input
+                  type="checkbox"
+                  checked={settings.enabledSkills.includes(id)}
+                  onChange={(event) => {
+                    const enabled = new Set(
+                      settings.enabledSkills,
+                    );
 
-            <label className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                checked={settings.operations.subtraction}
-                onChange={(event) =>
-                  setSettings({
-                    ...settings,
-                    operations: {
-                      ...settings.operations,
-                      subtraction: event.target.checked,
-                    },
-                  })
-                }
-              />
-              Subtraction
-            </label>
+                    if (event.target.checked) {
+                      enabled.add(id);
+                    } else {
+                      enabled.delete(id);
+                    }
 
-            <label className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                checked={settings.operations.multiplication}
-                onChange={(event) =>
-                  setSettings({
-                    ...settings,
-                    operations: {
-                      ...settings.operations,
-                      multiplication: event.target.checked,
-                    },
-                  })
-                }
-              />
-              Multiplication
-            </label>
+                    setSettings({
+                      ...settings,
+                      enabledSkills: [...enabled],
+                    });
+                  }}
+                />
 
-            <label className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                checked={settings.operations.division}
-                onChange={(event) =>
-                  setSettings({
-                    ...settings,
-                    operations: {
-                      ...settings.operations,
-                      division: event.target.checked,
-                    },
-                  })
-                }
-              />
-              Division
-            </label>
+                {label}
+              </label>
+            ))}
 
           </div>
         </Card>

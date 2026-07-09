@@ -1,12 +1,17 @@
 import type { AppSettings } from "../shared/types/settings";
 
-import { randomGenerator } from "./registry/generatorRegistry";
+import { getEnabledSkills } from "./skills/registry";
 
 export function generateQuestion(
   settings: AppSettings,
 ) {
-  const generator =
-    randomGenerator(settings);
+  const enabledSkills = getEnabledSkills(
+    settings.enabledSkills,
+  );
 
-  return generator(settings);
+  const index = Math.floor(
+    Math.random() * enabledSkills.length,
+  );
+
+  return enabledSkills[index].generate(settings);
 }

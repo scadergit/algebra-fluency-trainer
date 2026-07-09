@@ -1,80 +1,28 @@
-import { useEffect, useState } from "react";
-
 import { Page } from "../../shared/components/Page";
-
-import { generateQuestion } from "../../engine/questionEngine";
-import type { Question } from "../../engine/types";
-
-import { useSettings } from "../settings/SettingsContext";
 
 import QuestionCard from "./components/QuestionCard";
 
+import { usePracticeSession } from "./session/PracticeSessionContext";
+
 export default function PracticePage() {
-  const { settings } = useSettings();
-
-  const [question, setQuestion] =
-    useState<Question>();
-
-  const [correct, setCorrect] =
-    useState(0);
-
-  const [attempted, setAttempted] =
-    useState(0);
-
-  const [currentStreak, setCurrentStreak] =
-    useState(0);
-
-  const [bestStreak, setBestStreak] =
-    useState(0);
-
-  useEffect(() => {
-    setQuestion(generateQuestion(settings));
-  }, [settings]);
-
-  function nextQuestion() {
-    setQuestion(generateQuestion(settings));
-  }
-
-  function correctAnswer() {
-    setCorrect((value) => value + 1);
-    setAttempted((value) => value + 1);
-
-    setCurrentStreak((streak) => {
-      const next = streak + 1;
-
-      setBestStreak((best) =>
-        Math.max(best, next),
-      );
-
-      return next;
-    });
-
-    nextQuestion();
-  }
-
-  function incorrectAnswer() {
-    setAttempted((value) => value + 1);
-    setCurrentStreak(0);
-
-    nextQuestion();
-  }
-
-  function skipQuestion() {
-    setCurrentStreak(0);
-    nextQuestion();
-  }
-
-  if (!question) {
-    return null;
-  }
+  const {
+    question,
+    correct,
+    attempted,
+    currentStreak,
+    bestStreak,
+    markCorrect,
+    markIncorrect,
+    skipQuestion,
+    resetSession,
+  } = usePracticeSession();
 
   return (
     <Page title="Practice">
-
       <QuestionCard
         question={question}
-        onCorrect={correctAnswer}
-        onIncorrect={incorrectAnswer}
+        onCorrect={markCorrect}
+        onIncorrect={markIncorrect}
         onSkip={skipQuestion}
       />
 
@@ -125,27 +73,15 @@ export default function PracticePage() {
         </div>
 
         <div className="mt-6 border-t pt-6">
-
-          Accuracy
-
-          <div className="mt-2 text-4xl font-bold">
-
-            {attempted === 0
-              ? 0
-              : Math.round(
-                  (correct /
-                    attempted) *
-                    100,
-                )}
-
-            %
-
-          </div>
-
+          <button
+            className="rounded-lg bg-red-600 px-4 py-2 text-white"
+            onClick={resetSession}
+          >
+            Reset Session
+          </button>
         </div>
 
       </div>
-
     </Page>
   );
 }

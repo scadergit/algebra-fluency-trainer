@@ -25,12 +25,12 @@ const defaultSettings: AppSettings = {
   allowFractions: false,
   allowDecimals: false,
 
-  operations: {
-    addition: true,
-    subtraction: true,
-    multiplication: true,
-    division: true,
-  },
+  enabledSkills: [
+    "addition",
+    "subtraction",
+    "multiplication",
+    "division",
+  ],
 };
 
 const SettingsContext =
