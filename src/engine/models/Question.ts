@@ -1,9 +1,13 @@
 export interface Question {
   id: string;
 
+  topic: string;
+
   prompt: string;
 
-  topic: string;
+  answer: string;
+
+  explanation?: string;
 
   difficulty: number;
 }
