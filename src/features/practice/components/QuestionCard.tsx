@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Button } from "../../../shared/components/Button";
 import { Card } from "../../../shared/components/Card";
@@ -12,6 +12,8 @@ interface QuestionCardProps {
   onSkip(): void;
 }
 
+type ResultState = "idle" | "correct" | "incorrect";
+
 export default function QuestionCard({
   question,
   onCorrect,
@@ -19,15 +21,40 @@ export default function QuestionCard({
   onSkip,
 }: QuestionCardProps) {
   const [answer, setAnswer] = useState("");
+  const [result, setResult] =
+    useState<ResultState>("idle");
 
-  function submit() {
-    if (answer.trim() === question.answer) {
-      onCorrect();
-    } else {
-      onIncorrect();
+  useEffect(() => {
+    setAnswer("");
+    setResult("idle");
+  }, [question.id]);
+
+  useEffect(() => {
+    if (result === "idle") {
+      return;
     }
 
-    setAnswer("");
+    const timer = window.setTimeout(() => {
+      if (result === "correct") {
+        onCorrect();
+      } else {
+        onIncorrect();
+      }
+    }, 1500);
+
+    return () => window.clearTimeout(timer);
+  }, [result, onCorrect, onIncorrect]);
+
+  function submit() {
+    if (result !== "idle") {
+      return;
+    }
+
+    if (answer.trim() === question.answer) {
+      setResult("correct");
+    } else {
+      setResult("incorrect");
+    }
   }
 
   return (
@@ -48,6 +75,7 @@ export default function QuestionCard({
 
         <input
           autoFocus
+          disabled={result !== "idle"}
           className="w-full rounded-lg border border-slate-300 p-3 text-3xl"
           value={answer}
           onChange={(event) =>
@@ -62,18 +90,49 @@ export default function QuestionCard({
 
         <div className="flex gap-3">
 
-          <Button onClick={submit}>
+          <Button
+            disabled={result !== "idle"}
+            onClick={submit}
+          >
             Check
           </Button>
 
           <Button
             variant="secondary"
+            disabled={result !== "idle"}
             onClick={onSkip}
           >
             Skip
           </Button>
 
         </div>
+
+        {result === "correct" && (
+          <div className="rounded-lg bg-green-100 p-4 text-green-700">
+            ✅ Correct!
+          </div>
+        )}
+
+        {result === "incorrect" && (
+          <div className="rounded-lg bg-red-100 p-4">
+
+            <div className="font-semibold text-red-700">
+              ❌ Incorrect
+            </div>
+
+            <div className="mt-2">
+              Correct answer:
+              <span className="ml-2 font-bold">
+                {question.answer}
+              </span>
+            </div>
+
+            <div className="mt-2 text-sm text-slate-600">
+              {question.explanation}
+            </div>
+
+          </div>
+        )}
 
       </div>
     </Card>
