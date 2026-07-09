@@ -1,9 +1,7 @@
-import {
-  additionSkill,
-  subtractionSkill,
-  multiplicationSkill,
-  divisionSkill,
-} from ".";
+import { additionSkill } from "./Addition";
+import { subtractionSkill } from "./Subtraction";
+import { multiplicationSkill } from "./Multiplication";
+import { divisionSkill } from "./Division";
 
 export const arithmeticSkills = [
   additionSkill,
