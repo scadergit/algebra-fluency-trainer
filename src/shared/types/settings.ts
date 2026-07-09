@@ -1,6 +1,9 @@
 export interface AppSettings {
   maxNumber: number;
-  allowNegatives: boolean;
+
+  allowNegativeNumbers: boolean;
+  allowNegativeAnswers: boolean;
+
   allowFractions: boolean;
   allowDecimals: boolean;
 }

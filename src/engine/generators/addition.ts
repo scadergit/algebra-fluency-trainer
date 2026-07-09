@@ -3,7 +3,7 @@ import { randomInteger } from "../random/randomInteger";
 import type { AppSettings } from "../../shared/types/settings";
 import type { Question } from "../types";
 
-export function generateIntegerArithmetic(
+export function generateAddition(
   settings: AppSettings,
 ): Question {
   const left = randomInteger(1, settings.maxNumber);
@@ -12,7 +12,7 @@ export function generateIntegerArithmetic(
   return {
     id: crypto.randomUUID(),
 
-    topic: "Integer Arithmetic",
+    topic: "Addition",
 
     prompt: `${left} + ${right}`,
 

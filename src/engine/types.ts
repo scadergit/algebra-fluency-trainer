@@ -1,5 +1,8 @@
 export interface Question {
+  id: string;
+  topic: string;
   prompt: string;
   answer: string;
-  topic: string;
+  explanation?: string;
+  difficulty: number;
 }

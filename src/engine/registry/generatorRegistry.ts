@@ -1,17 +1,19 @@
 import type { AppSettings } from "../../shared/types/settings";
 import type { Question } from "../types";
 
-import { generateIntegerArithmetic } from "../generators/integerArithmetic";
+import { generateAddition } from "../generators/addition";
+import { generateSubtraction } from "../generators/subtraction";
 
 export type Generator = (
   settings: AppSettings,
 ) => Question;
 
 const generators: Generator[] = [
-  generateIntegerArithmetic,
+  generateAddition,
+  generateSubtraction,
 ];
 
-export function randomGenerator() {
+export function randomGenerator(): Generator {
   const index = Math.floor(
     Math.random() * generators.length,
   );

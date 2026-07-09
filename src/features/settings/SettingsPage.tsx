@@ -4,10 +4,7 @@ import { Page } from "../../shared/components/Page";
 import { useSettings } from "./SettingsContext";
 
 export default function SettingsPage() {
-  const {
-    settings,
-    setSettings,
-  } = useSettings();
+  const { settings, setSettings } = useSettings();
 
   return (
     <Page title="Settings">
@@ -26,47 +23,52 @@ export default function SettingsPage() {
               onChange={(event) =>
                 setSettings({
                   ...settings,
-                  maxNumber: Number(
-                    event.target.value,
-                  ),
+                  maxNumber: Number(event.target.value),
                 })
               }
             />
 
-            <div>
-              {settings.maxNumber}
-            </div>
+            <div>{settings.maxNumber}</div>
           </div>
 
           <label className="flex items-center gap-3">
             <input
               type="checkbox"
-              checked={
-                settings.allowNegatives
-              }
+              checked={settings.allowNegativeNumbers}
               onChange={(event) =>
                 setSettings({
                   ...settings,
-                  allowNegatives:
-                    event.target.checked,
+                  allowNegativeNumbers: event.target.checked,
                 })
               }
             />
 
-            Allow Negatives
+            Allow Negative Numbers
           </label>
 
           <label className="flex items-center gap-3">
             <input
               type="checkbox"
-              checked={
-                settings.allowFractions
-              }
+              checked={settings.allowNegativeAnswers}
               onChange={(event) =>
                 setSettings({
                   ...settings,
-                  allowFractions:
-                    event.target.checked,
+                  allowNegativeAnswers: event.target.checked,
+                })
+              }
+            />
+
+            Allow Negative Answers
+          </label>
+
+          <label className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              checked={settings.allowFractions}
+              onChange={(event) =>
+                setSettings({
+                  ...settings,
+                  allowFractions: event.target.checked,
                 })
               }
             />
@@ -77,14 +79,11 @@ export default function SettingsPage() {
           <label className="flex items-center gap-3">
             <input
               type="checkbox"
-              checked={
-                settings.allowDecimals
-              }
+              checked={settings.allowDecimals}
               onChange={(event) =>
                 setSettings({
                   ...settings,
-                  allowDecimals:
-                    event.target.checked,
+                  allowDecimals: event.target.checked,
                 })
               }
             />

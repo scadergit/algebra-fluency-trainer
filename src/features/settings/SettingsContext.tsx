@@ -18,7 +18,10 @@ interface SettingsContextValue {
 
 const defaultSettings: AppSettings = {
   maxNumber: 9,
-  allowNegatives: false,
+
+  allowNegativeNumbers: false,
+  allowNegativeAnswers: false,
+
   allowFractions: false,
   allowDecimals: false,
 };
