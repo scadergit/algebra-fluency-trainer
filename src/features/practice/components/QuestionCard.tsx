@@ -3,10 +3,11 @@ import { useEffect, useState } from "react";
 import { Button } from "../../../shared/components/Button";
 import { Card } from "../../../shared/components/Card";
 
-import type { Question } from "../../../engine/types";
+import type { GeneratedProblem } from "../../../engine/models";
+import type { Question } from "../../../engine/models";
 
 interface QuestionCardProps {
-  question: Question;
+  problem: GeneratedProblem;
   onCorrect(): void;
   onIncorrect(): void;
   onSkip(): void;
@@ -15,7 +16,7 @@ interface QuestionCardProps {
 type ResultState = "idle" | "correct" | "incorrect";
 
 export default function QuestionCard({
-  question,
+  problem,
   onCorrect,
   onIncorrect,
   onSkip,
@@ -27,7 +28,7 @@ export default function QuestionCard({
   useEffect(() => {
     setAnswer("");
     setResult("idle");
-  }, [question.id]);
+  }, [problem.question.id]);
 
   useEffect(() => {
     if (result === "idle") {
@@ -50,7 +51,7 @@ export default function QuestionCard({
       return;
     }
 
-    if (answer.trim() === question.answer) {
+    if (problem.evaluate(answer).correct) {
       setResult("correct");
     } else {
       setResult("incorrect");
@@ -64,11 +65,11 @@ export default function QuestionCard({
         <div>
 
           <div className="text-sm text-slate-500">
-            {question.topic}
+            {problem.question.topic}
           </div>
 
           <div className="mt-2 text-5xl font-bold">
-            {question.prompt} =
+            {problem.question.prompt} =
           </div>
 
         </div>
@@ -123,13 +124,15 @@ export default function QuestionCard({
             <div className="mt-2">
               Correct answer:
               <span className="ml-2 font-bold">
-                {question.answer}
+                {String(problem.metadata.correctAnswer)}
               </span>
             </div>
 
-            <div className="mt-2 text-sm text-slate-600">
-              {question.explanation}
-            </div>
+            {problem.metadata.explanation && (
+              <div className="mt-2 text-sm text-slate-600">
+                {String(problem.metadata.explanation)}
+              </div>
+            )}
 
           </div>
         )}

@@ -6,7 +6,7 @@ import { usePracticeSession } from "./session/PracticeSessionContext";
 
 export default function PracticePage() {
   const {
-    question,
+    problem: question,
     correct,
     attempted,
     currentStreak,
@@ -20,7 +20,7 @@ export default function PracticePage() {
   return (
     <Page title="Practice">
       <QuestionCard
-        question={question}
+        problem={question}
         onCorrect={markCorrect}
         onIncorrect={markIncorrect}
         onSkip={skipQuestion}

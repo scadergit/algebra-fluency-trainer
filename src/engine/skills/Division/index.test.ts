@@ -6,6 +6,7 @@ describe("Division Skill", () => {
   it("always produces an integer answer", () => {
     const settings = {
       maxNumber: 9,
+      allowNegativeNumbers: false,
       allowNegativeAnswers: false,
       enabledSkills: [],
       allowDecimals: false,
@@ -13,12 +14,8 @@ describe("Division Skill", () => {
     };
 
     for (let i = 0; i < 1000; i++) {
-      const question =
-        divisionSkill.generate(settings);
-
-      const answer = Number(
-        question.answer,
-      );
+      const problem = divisionSkill.generate(settings);
+      const answer = Number(problem.metadata.correctAnswer);
 
       expect(
         Number.isInteger(answer),

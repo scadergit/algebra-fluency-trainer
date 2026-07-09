@@ -8,12 +8,12 @@ import type { ReactNode } from "react";
 
 import { generateQuestion } from "../../../engine/questionEngine";
 
-import type { Question } from "../../../engine/types";
+import type { GeneratedProblem } from "../../../engine/models";
 
 import { useSettings } from "../../settings/SettingsContext";
 
 interface PracticeSession {
-  question: Question;
+  problem: GeneratedProblem;
 
   correct: number;
 
@@ -48,8 +48,8 @@ export function PracticeSessionProvider({
 }: Props) {
   const { settings } = useSettings();
 
-  const [question, setQuestion] =
-    useState<Question>(() =>
+  const [problem, setProblem] =
+    useState<GeneratedProblem>(() =>
       generateQuestion(settings),
     );
 
@@ -66,7 +66,7 @@ export function PracticeSessionProvider({
     useState(0);
 
   function nextQuestion() {
-    setQuestion(generateQuestion(settings));
+    setProblem(generateQuestion(settings));
   }
 
   function markCorrect() {
@@ -108,7 +108,7 @@ export function PracticeSessionProvider({
   return (
     <PracticeSessionContext.Provider
       value={{
-        question,
+        problem,
         correct,
         attempted,
         currentStreak,

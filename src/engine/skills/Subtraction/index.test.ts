@@ -6,6 +6,7 @@ describe("Subtraction Skill", () => {
   it("never generates a negative answer when negative answers are disabled", () => {
     const settings = {
       maxNumber: 9,
+      allowNegativeNumbers: false,
       allowNegativeAnswers: false,
       enabledSkills: [],
       allowDecimals: false,
@@ -13,11 +14,11 @@ describe("Subtraction Skill", () => {
     };
 
     for (let i = 0; i < 1000; i++) {
-      const question =
-        subtractionSkill.generate(settings);
+      const problem = subtractionSkill.generate(settings);
+      const { left, right } = problem.metadata;
 
       expect(
-        Number(question.answer),
+        Number(problem.evaluate(String(Number(left) - Number(right))).correct),
       ).toBeGreaterThanOrEqual(0);
     }
   });

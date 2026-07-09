@@ -3,6 +3,8 @@ import { randomInteger } from "../../random/randomInteger";
 import type { AppSettings } from "../../../shared/types/settings";
 
 import type { Question } from "../../models/Question";
+import type { GeneratedProblem } from "../../models";
+import { createArithmeticProblem } from "../../problem/createArithmeticProblem";
 
 import type { MathSkill } from "../MathSkill";
 
@@ -15,20 +17,20 @@ export const divisionSkill: MathSkill = {
 
   generate(
     settings: AppSettings,
-  ): Question {
+  ): GeneratedProblem {
     const answer = randomInteger(1, settings.maxNumber);
 
     const divisor = randomInteger(1, settings.maxNumber);
 
     const dividend = answer * divisor;
 
-    return {
+    const question: Question = {
       id: crypto.randomUUID(),
       topic: "Division",
       prompt: `${dividend} ÷ ${divisor}`,
-      answer: String(answer),
       difficulty: 1,
-      explanation: `${dividend} ÷ ${divisor} = ${answer}`,
     };
+
+    return createArithmeticProblem(question, String(answer));
   },
 };

@@ -1,18 +1,17 @@
-import type { Problem } from "./types";
-
-import type { Question } from "../types";
+import type { Question } from "../models";
+import type { GeneratedProblem } from "../models";
+import type { EvaluationResult } from "./types";
 
 export function createArithmeticProblem(
   question: Question,
-): Problem {
+  correctAnswer: string,
+): GeneratedProblem {
   return {
     question,
-
-    evaluate(answer) {
+    metadata: { correctAnswer: correctAnswer, left: question.prompt.split(" ")[0], right: question.prompt.split(" ")[2] },
+    evaluate(answer: string): EvaluationResult {
       return {
-        correct:
-          answer.trim() ===
-          question.answer,
+        correct: answer.trim() === correctAnswer,
       };
     },
   };
