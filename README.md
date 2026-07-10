@@ -27,8 +27,11 @@ The Algebra Fluency Trainer is a drill tool, not a lesson tool. It generates an 
 - **Live session stats** — correct, incorrect, streak, average response time
 - **Session summary** — shown when the timer expires
 - **Statistics page** — per-skill cards with a questions-per-minute trend chart (Y-axis 0–50 QPM)
-- **Multi-student support** — each student logs in with their name and a secret word; stats are stored separately per student
-- **Teacher settings** — password-protected settings page lets a teacher configure skills, number ranges, and reset any student's secret word
+- **Multi-student support** — each student logs in with their name and a secret word; stats and settings are stored separately per student
+- **Per-student settings** — each student has their own skill and number settings; new students inherit from the shared default
+- **Teacher settings** — password-protected settings page with a side-by-side layout: settings on the left, student roster on the right
+- **Teacher student switcher** — teachers can click any student in the roster to edit their settings without needing the student's secret word
+- **Iconified navigation** — nav bar links include icons for quick recognition
 - **Fully offline** — all data is stored in `localStorage`; no account or server required
 
 ---
@@ -48,10 +51,11 @@ The Algebra Fluency Trainer is a drill tool, not a lesson tool. It generates an 
 ### For teachers
 
 - Navigate to **Settings** and enter the teacher password (`teachersecret` by default — change this in the source before deploying to a class).
+- The settings page shows a **"Settings for \<name\>"** label so you always know whose settings you're editing.
 - **Skills** — enable or disable addition, subtraction, multiplication, and division.
 - **Numbers** — set the maximum operand value (5–20) and allow negatives, fractions, or decimals.
 - **History** — clear the current student's session history.
-- **Students** — view all registered students and set or reset any student's secret word.
+- **Students panel** (right side) — lists all registered students. Click a student to switch to their settings without needing their secret word. Click 🔑 to set a new secret word. Click **Default (no student)** to edit the shared default settings that new students inherit.
 
 ### Viewing statistics
 
