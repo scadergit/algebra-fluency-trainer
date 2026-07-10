@@ -24,6 +24,10 @@ const DURATION_OPTIONS: Array<{
   { label: "10 min", seconds: 600 },
 ];
 
+// Countdown steps shown inside the question card before the timer starts
+const COUNTDOWN_STEPS = ["Ready…", "Set…", "Go!"];
+const STEP_MS = 800;
+
 // ── StatCell ──────────────────────────────────────────────────────────────────
 
 function StatCell({
@@ -68,15 +72,21 @@ export default function PracticePage() {
   const [selectedDuration, setSelectedDuration] =
     useState<number | null>(null);
 
-  // Seconds remaining on the active countdown
+  // "idle"      = no timed mode selected
+  // "countdown" = showing Ready/Set/Go inside the card
+  // "active"    = timer running, questions live
+  // "ended"     = session finished
+  type Phase = "idle" | "countdown" | "active" | "ended";
+  const [phase, setPhase] = useState<Phase>("idle");
+
+  // Which step of the countdown we're on (0 = Ready, 1 = Set, 2 = Go)
+  const [countdownStep, setCountdownStep] = useState(0);
+
+  // Seconds remaining on the active timer
   const [secondsRemaining, setSecondsRemaining] =
     useState<number | null>(null);
 
-  // Whether the timed session has ended
-  const [sessionEnded, setSessionEnded] =
-    useState(false);
-
-  // Snapshot of stats at the moment the timer expired
+  // Snapshot of stats when the timer expires
   const [finalStats, setFinalStats] = useState<{
     correct: number;
     incorrect: number;
@@ -85,28 +95,37 @@ export default function PracticePage() {
     durationSeconds: number;
   } | null>(null);
 
-  const intervalRef = useRef<number | null>(null);
-
-  // Start / restart the countdown whenever selectedDuration changes
-  function startTimer(duration: number | null) {
-    stopTimer();
-    setSessionEnded(false);
-    setFinalStats(null);
-    setSelectedDuration(duration);
-    setSecondsRemaining(duration);
-    resetSession();
-  }
+  const timerRef = useRef<number | null>(null);
 
   function stopTimer() {
-    if (intervalRef.current !== null) {
-      window.clearInterval(intervalRef.current);
-      intervalRef.current = null;
+    if (timerRef.current !== null) {
+      window.clearInterval(timerRef.current);
+      timerRef.current = null;
     }
   }
 
-  // Tick the countdown every second
+  // ── Countdown step ticker ─────────────────────────────────────────────────
+
   useEffect(() => {
-    if (secondsRemaining === null) {
+    if (phase !== "countdown") return;
+
+    if (countdownStep >= COUNTDOWN_STEPS.length) {
+      // Countdown finished — start the real timer
+      setPhase("active");
+      return;
+    }
+
+    const id = window.setTimeout(
+      () => setCountdownStep((s) => s + 1),
+      STEP_MS,
+    );
+    return () => window.clearTimeout(id);
+  }, [phase, countdownStep]);
+
+  // ── Session timer ticker ──────────────────────────────────────────────────
+
+  useEffect(() => {
+    if (phase !== "active" || secondsRemaining === null) {
       return;
     }
 
@@ -119,7 +138,7 @@ export default function PracticePage() {
         bestStreak,
         durationSeconds: selectedDuration ?? 0,
       };
-      setSessionEnded(true);
+      setPhase("ended");
       setFinalStats(stats);
       addRecord({
         completedAt: new Date().toISOString(),
@@ -133,7 +152,7 @@ export default function PracticePage() {
       return;
     }
 
-    intervalRef.current = window.setInterval(() => {
+    timerRef.current = window.setInterval(() => {
       setSecondsRemaining((prev) =>
         prev !== null ? prev - 1 : null,
       );
@@ -141,10 +160,30 @@ export default function PracticePage() {
 
     return () => stopTimer();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [secondsRemaining]);
+  }, [phase, secondsRemaining]);
 
   // Cleanup on unmount
   useEffect(() => () => stopTimer(), []);
+
+  // ── selectDuration ────────────────────────────────────────────────────────
+
+  function selectDuration(duration: number | null) {
+    stopTimer();
+    setFinalStats(null);
+    setSelectedDuration(duration);
+    resetSession();
+
+    if (duration === null) {
+      setPhase("idle");
+      setSecondsRemaining(null);
+    } else {
+      setCountdownStep(0);
+      setPhase("countdown");
+      setSecondsRemaining(duration);
+    }
+  }
+
+  // ── Derived values ────────────────────────────────────────────────────────
 
   const incorrect = attempted - correct;
   const accuracy =
@@ -154,9 +193,15 @@ export default function PracticePage() {
 
   const isTimedMode = selectedDuration !== null;
 
+  // Label to pass into QuestionCard during countdown (undefined = normal mode)
+  const countdownLabel =
+    phase === "countdown"
+      ? COUNTDOWN_STEPS[countdownStep]
+      : undefined;
+
   // ── Session ended ─────────────────────────────────────────────────────────
 
-  if (sessionEnded && finalStats) {
+  if (phase === "ended" && finalStats) {
     return (
       <Page title="Practice">
         <div className="max-w-md">
@@ -166,9 +211,7 @@ export default function PracticePage() {
             skipped={finalStats.skipped}
             bestStreak={finalStats.bestStreak}
             durationSeconds={finalStats.durationSeconds}
-            onRestart={() => {
-              startTimer(selectedDuration);
-            }}
+            onRestart={() => selectDuration(selectedDuration)}
           />
         </div>
       </Page>
@@ -191,7 +234,7 @@ export default function PracticePage() {
           return (
             <button
               key={label}
-              onClick={() => startTimer(seconds)}
+              onClick={() => selectDuration(seconds)}
               className={[
                 "rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
                 isActive
@@ -207,7 +250,7 @@ export default function PracticePage() {
 
       <div className="flex items-start gap-8">
 
-        {/* Question card */}
+        {/* Question card — receives countdownLabel during countdown phase */}
         <div className="flex-1">
           <QuestionCard
             key={question.question.id}
@@ -215,21 +258,22 @@ export default function PracticePage() {
             onCorrect={markCorrect}
             onIncorrect={markIncorrect}
             onSkip={skipQuestion}
+            countdownLabel={countdownLabel}
           />
         </div>
 
         {/* Stats panel */}
         <div className="w-56 shrink-0 rounded-xl bg-white p-6 shadow-sm">
 
-          {/* Timer (only in timed mode) */}
-          {isTimedMode && secondsRemaining !== null && (
+          {/* Timer (only in active timed mode) */}
+          {phase === "active" && secondsRemaining !== null && (
             <div className="mb-4 border-b border-slate-100 pb-4">
               <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-400">
                 Time Remaining
               </div>
               <TimerDisplay
                 secondsRemaining={secondsRemaining}
-                totalSeconds={selectedDuration}
+                totalSeconds={selectedDuration!}
               />
             </div>
           )}
@@ -248,7 +292,7 @@ export default function PracticePage() {
           <div className="mt-4">
             <button
               className="w-full rounded-lg bg-red-600 px-3 py-2 text-sm text-white hover:bg-red-700"
-              onClick={() => startTimer(selectedDuration)}
+              onClick={() => selectDuration(selectedDuration)}
             >
               Reset
             </button>
