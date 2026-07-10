@@ -20,7 +20,7 @@ export function TimerDisplay({
   const isLow = fraction <= 0.2;
 
   const color = paused
-    ? "text-slate-400"
+    ? "text-blue-300"
     : isLow
       ? "text-red-600"
       : "text-slate-800";

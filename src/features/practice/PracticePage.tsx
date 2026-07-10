@@ -329,10 +329,11 @@ export default function PracticePage() {
               <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-400">
                 {timerPaused ? "Time Paused" : "Time Remaining"}
               </div>
+              {/* Timer box — icicles hang from the bottom when paused */}
               <div
                 className={[
-                  "rounded-lg transition-colors duration-300",
-                  timerPaused ? "bg-slate-100" : "bg-transparent",
+                  "relative transition-colors duration-300",
+                  timerPaused ? "rounded-t-lg bg-blue-50" : "rounded-lg bg-transparent",
                 ].join(" ")}
               >
                 <TimerDisplay
@@ -340,6 +341,62 @@ export default function PracticePage() {
                   totalSeconds={selectedDuration!}
                   paused={timerPaused}
                 />
+
+                {/* Icicles — grow down from the bottom edge when paused */}
+                {timerPaused && (
+                  <svg
+                    viewBox="0 0 200 28"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="absolute left-0 w-full"
+                    style={{
+                      top: "100%",
+                      transformOrigin: "top center",
+                      animation:
+                        "icicleGrow 0.4s ease-out forwards, icicleShimmer 2s ease-in-out 0.4s infinite",
+                    }}
+                    aria-hidden="true"
+                  >
+                    <defs>
+                      <linearGradient id="iceGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#bfdbfe" stopOpacity="0.9" />
+                        <stop offset="100%" stopColor="#93c5fd" stopOpacity="0.5" />
+                      </linearGradient>
+                    </defs>
+                    {/* Ice shelf along the top */}
+                    <rect x="0" y="0" width="200" height="5" fill="#bfdbfe" opacity="0.7" rx="1" />
+                    {/* Icicle spikes — varying heights and widths for a natural look */}
+                    <path
+                      d={[
+                        "M0,5 L0,5",
+                        "L8,5 L11,22 L14,5",
+                        "L20,5 L22,14 L24,5",
+                        "L30,5 L34,28 L38,5",
+                        "L44,5 L46,18 L48,5",
+                        "L54,5 L58,24 L62,5",
+                        "L66,5 L68,12 L70,5",
+                        "L76,5 L80,26 L84,5",
+                        "L88,5 L90,16 L92,5",
+                        "L98,5 L102,22 L106,5",
+                        "L110,5 L112,10 L114,5",
+                        "L120,5 L124,28 L128,5",
+                        "L132,5 L134,15 L136,5",
+                        "L142,5 L146,20 L150,5",
+                        "L154,5 L156,13 L158,5",
+                        "L164,5 L168,25 L172,5",
+                        "L176,5 L178,17 L180,5",
+                        "L186,5 L190,23 L194,5",
+                        "L200,5 Z",
+                      ].join(" ")}
+                      fill="url(#iceGrad)"
+                    />
+                    {/* Subtle highlight streaks on a few icicles */}
+                    <line x1="11" y1="6" x2="11" y2="18" stroke="white" strokeWidth="1" strokeOpacity="0.5" />
+                    <line x1="34" y1="6" x2="34" y2="24" stroke="white" strokeWidth="1" strokeOpacity="0.5" />
+                    <line x1="80" y1="6" x2="80" y2="22" stroke="white" strokeWidth="1" strokeOpacity="0.5" />
+                    <line x1="124" y1="6" x2="124" y2="24" stroke="white" strokeWidth="1" strokeOpacity="0.5" />
+                    <line x1="168" y1="6" x2="168" y2="21" stroke="white" strokeWidth="1" strokeOpacity="0.5" />
+                  </svg>
+                )}
               </div>
             </div>
           )}
