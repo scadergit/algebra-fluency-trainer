@@ -61,6 +61,9 @@ export default function PracticePage() {
     bestStreak,
     avgResponseMs,
     avgResponseMsBySkill,
+    promptCountBySkill,
+    correctCountBySkill,
+    attemptedCountBySkill,
     markCorrect,
     markIncorrect,
     skipQuestion,
@@ -100,6 +103,35 @@ export default function PracticePage() {
 
   const timerRef = useRef<number | null>(null);
 
+  // Keep refs to the latest session state so the timer effect (which only
+  // re-runs on secondsRemaining changes) always reads current values.
+  const sessionRef = useRef({
+    correct,
+    attempted,
+    skipped,
+    bestStreak,
+    avgResponseMs,
+    avgResponseMsBySkill,
+    promptCountBySkill,
+    correctCountBySkill,
+    attemptedCountBySkill,
+    enabledSkills: settings.enabledSkills,
+    selectedDuration,
+  });
+  sessionRef.current = {
+    correct,
+    attempted,
+    skipped,
+    bestStreak,
+    avgResponseMs,
+    avgResponseMsBySkill,
+    promptCountBySkill,
+    correctCountBySkill,
+    attemptedCountBySkill,
+    enabledSkills: settings.enabledSkills,
+    selectedDuration,
+  };
+
   function stopTimer() {
     if (timerRef.current !== null) {
       window.clearInterval(timerRef.current);
@@ -134,28 +166,42 @@ export default function PracticePage() {
 
     if (secondsRemaining <= 0) {
       stopTimer();
+      // Read from ref to get the latest values (avoids stale closure)
+      const s = sessionRef.current;
       const stats = {
-        correct,
-        incorrect: attempted - correct,
-        skipped,
-        bestStreak,
-        durationSeconds: selectedDuration ?? 0,
-        avgResponseMs,
+        correct: s.correct,
+        incorrect: s.attempted - s.correct,
+        skipped: s.skipped,
+        bestStreak: s.bestStreak,
+        durationSeconds: s.selectedDuration ?? 0,
+        avgResponseMs: s.avgResponseMs,
       };
       setPhase("ended");
       setFinalStats(stats);
       addRecord({
         completedAt: new Date().toISOString(),
-        durationSeconds: selectedDuration ?? 0,
-        skills: settings.enabledSkills,
+        durationSeconds: s.selectedDuration ?? 0,
+        skills: s.enabledSkills,
         correct: stats.correct,
         incorrect: stats.incorrect,
         skipped: stats.skipped,
         bestStreak: stats.bestStreak,
         avgResponseMs: stats.avgResponseMs ?? undefined,
         avgResponseMsBySkill:
-          Object.keys(avgResponseMsBySkill).length > 0
-            ? avgResponseMsBySkill
+          Object.keys(s.avgResponseMsBySkill).length > 0
+            ? s.avgResponseMsBySkill
+            : undefined,
+        promptCountBySkill:
+          Object.keys(s.promptCountBySkill).length > 0
+            ? s.promptCountBySkill
+            : undefined,
+        correctCountBySkill:
+          Object.keys(s.correctCountBySkill).length > 0
+            ? s.correctCountBySkill
+            : undefined,
+        attemptedCountBySkill:
+          Object.keys(s.attemptedCountBySkill).length > 0
+            ? s.attemptedCountBySkill
             : undefined,
       });
       return;

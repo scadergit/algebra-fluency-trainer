@@ -1,96 +1,93 @@
-import { Card } from "../../shared/components/Card";
 import { Page } from "../../shared/components/Page";
-
 import { useSessionHistory } from "../../shared/hooks/useSessionHistory";
-import { AvgTimeChart } from "./AvgTimeChart";
+import { SkillCard } from "./SkillCard";
 
+import type { SkillStats } from "./SkillCard";
 import type { SessionRecord } from "../../types/SessionRecord";
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── Aggregate per-skill stats from all sessions ───────────────────────────────
 
-function formatDuration(seconds: number): string {
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  if (m === 0) return `${s}s`;
-  if (s === 0) return `${m}m`;
-  return `${m}m ${s}s`;
-}
+function buildSkillStats(history: SessionRecord[]): SkillStats[] {
+  // Work chronologically (history is stored newest-first)
+  const sessions = [...history].reverse();
 
-function formatDate(iso: string): string {
-  const d = new Date(iso);
-  return d.toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
+  // Collect all skill names
+  const skillSet = new Set<string>();
+  for (const r of sessions) {
+    for (const s of r.skills) skillSet.add(s);
+    if (r.avgResponseMsBySkill) {
+      for (const s of Object.keys(r.avgResponseMsBySkill)) skillSet.add(s);
+    }
+    if (r.promptCountBySkill) {
+      for (const s of Object.keys(r.promptCountBySkill)) skillSet.add(s);
+    }
+  }
+
+  const skills = Array.from(skillSet).sort();
+
+  return skills.map((skill, skillIndex) => {
+    let totalCorrect = 0;
+    let totalAttempted = 0;
+    let totalPrompts = 0;
+    let sessionCount = 0;
+    const avgMsHistory: number[] = [];
+
+    for (const r of sessions) {
+      const wasActive = r.skills.includes(skill);
+      if (!wasActive) continue;
+
+      sessionCount += 1;
+
+      const skillCount = r.skills.length;
+
+      // ── Prompt count ──────────────────────────────────────────────────────
+      const prompts = r.promptCountBySkill?.[skill];
+      if (prompts !== undefined) {
+        // New sessions: exact per-skill count
+        totalPrompts += prompts;
+      } else {
+        // Old sessions: distribute session totals evenly across active skills
+        const sessionTotal = r.correct + r.incorrect + r.skipped;
+        totalPrompts += Math.round(sessionTotal / skillCount);
+      }
+
+      // ── Avg response time history ─────────────────────────────────────────
+      const avgMs = r.avgResponseMsBySkill?.[skill];
+      if (avgMs !== undefined) {
+        avgMsHistory.push(avgMs);
+      } else if (r.avgResponseMs !== undefined) {
+        // Old sessions: use the overall avg as a proxy for each skill
+        avgMsHistory.push(r.avgResponseMs);
+      }
+
+      // ── Correct / attempted ───────────────────────────────────────────────
+      const skillCorrect = r.correctCountBySkill?.[skill];
+      const skillAttempted = r.attemptedCountBySkill?.[skill];
+      if (skillCorrect !== undefined && skillAttempted !== undefined) {
+        // New sessions: exact per-skill counts
+        totalCorrect += skillCorrect;
+        totalAttempted += skillAttempted;
+      } else if (skillCount === 1) {
+        // Old single-skill session: all results belong to this skill
+        totalCorrect += r.correct;
+        totalAttempted += r.correct + r.incorrect;
+      } else {
+        // Old multi-skill session: distribute evenly (best approximation)
+        totalCorrect += Math.round(r.correct / skillCount);
+        totalAttempted += Math.round((r.correct + r.incorrect) / skillCount);
+      }
+    }
+
+    return {
+      skill,
+      skillIndex,
+      avgMsHistory,
+      totalAttempted,
+      totalCorrect,
+      totalPrompts,
+      sessionCount,
+    };
   });
-}
-
-function formatTime(iso: string): string {
-  const d = new Date(iso);
-  return d.toLocaleTimeString(undefined, {
-    hour: "numeric",
-    minute: "2-digit",
-  });
-}
-
-function formatSkills(skills: string[]): string {
-  if (skills.length === 0) return "—";
-  const names = skills.map((s) =>
-    s.charAt(0).toUpperCase() + s.slice(1),
-  );
-  if (names.length <= 2) return names.join(" & ");
-  return `${names.slice(0, -1).join(", ")} & ${names[names.length - 1]}`;
-}
-
-function accuracy(record: SessionRecord): string {
-  const attempted = record.correct + record.incorrect;
-  if (attempted === 0) return "—";
-  return `${Math.round((record.correct / attempted) * 100)}%`;
-}
-
-function formatAvgTime(ms: number | undefined): string {
-  if (ms === undefined) return "—";
-  if (ms < 1000) return `${ms}ms`;
-  return `${(ms / 1000).toFixed(1)}s`;
-}
-
-// ── Table row ─────────────────────────────────────────────────────────────────
-
-function HistoryRow({ record }: { record: SessionRecord }) {
-  return (
-    <tr className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
-      <td className="py-3 pr-4 text-sm text-slate-500 whitespace-nowrap">
-        {formatDate(record.completedAt)}
-        <span className="ml-2 text-slate-400">
-          {formatTime(record.completedAt)}
-        </span>
-      </td>
-      <td className="py-3 pr-4 text-sm font-medium text-slate-700 whitespace-nowrap">
-        {formatDuration(record.durationSeconds)}
-      </td>
-      <td className="py-3 pr-4 text-sm text-slate-600">
-        {formatSkills(record.skills)}
-      </td>
-      <td className="py-3 pr-4 text-center text-sm font-semibold text-green-700">
-        {record.correct}
-      </td>
-      <td className="py-3 pr-4 text-center text-sm font-semibold text-red-600">
-        {record.incorrect}
-      </td>
-      <td className="py-3 pr-4 text-center text-sm text-slate-500">
-        {record.skipped}
-      </td>
-      <td className="py-3 pr-4 text-center text-sm font-semibold text-slate-700">
-        {accuracy(record)}
-      </td>
-      <td className="py-3 pr-4 text-center text-sm text-slate-500">
-        {record.bestStreak}
-      </td>
-      <td className="py-3 text-center text-sm text-slate-500">
-        {formatAvgTime(record.avgResponseMs)}
-      </td>
-    </tr>
-  );
 }
 
 // ── StatisticsPage ────────────────────────────────────────────────────────────
@@ -98,10 +95,13 @@ function HistoryRow({ record }: { record: SessionRecord }) {
 export default function StatisticsPage() {
   const { history, clearHistory } = useSessionHistory();
 
+  const skillStats = buildSkillStats(history);
+  const hasData = skillStats.some((s) => s.sessionCount > 0);
+
   return (
     <Page title="Statistics">
 
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-6 flex items-center justify-between">
         <p className="text-sm text-slate-500">
           {history.length === 0
             ? "No timed sessions recorded yet."
@@ -118,68 +118,20 @@ export default function StatisticsPage() {
         )}
       </div>
 
-      {history.length === 0 ? (
-        <Card>
+      {!hasData ? (
+        <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
           <p className="text-slate-500">
-            Complete a timed practice session to see your history here.
+            Complete a timed practice session to see your skill stats here.
           </p>
-        </Card>
+        </div>
       ) : (
-        <>
-          {/* Line chart — only rendered when per-skill data exists */}
-          <Card>
-            <AvgTimeChart history={history} />
-          </Card>
-
-          {/* Session history table */}
-          <div className="mt-6">
-            <Card>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left">
-                  <thead>
-                    <tr className="border-b border-slate-200">
-                      <th className="pb-3 pr-4 text-xs font-semibold uppercase tracking-wide text-slate-400">
-                        Date
-                      </th>
-                      <th className="pb-3 pr-4 text-xs font-semibold uppercase tracking-wide text-slate-400">
-                        Duration
-                      </th>
-                      <th className="pb-3 pr-4 text-xs font-semibold uppercase tracking-wide text-slate-400">
-                        Topics
-                      </th>
-                      <th className="pb-3 pr-4 text-center text-xs font-semibold uppercase tracking-wide text-slate-400">
-                        ✅
-                      </th>
-                      <th className="pb-3 pr-4 text-center text-xs font-semibold uppercase tracking-wide text-slate-400">
-                        ❌
-                      </th>
-                      <th className="pb-3 pr-4 text-center text-xs font-semibold uppercase tracking-wide text-slate-400">
-                        Skip
-                      </th>
-                      <th className="pb-3 pr-4 text-center text-xs font-semibold uppercase tracking-wide text-slate-400">
-                        Acc.
-                      </th>
-                      <th className="pb-3 pr-4 text-center text-xs font-semibold uppercase tracking-wide text-slate-400">
-                        🏆
-                      </th>
-                      <th className="pb-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-400">
-                        ⏱ Avg
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {history.map((record, index) => (
-                      <HistoryRow
-                        key={`${record.completedAt}-${index}`}
-                        record={record}
-                      />
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </Card>
-          </div>
-        </>
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {skillStats
+            .filter((s) => s.sessionCount > 0)
+            .map((stats) => (
+              <SkillCard key={stats.skill} stats={stats} />
+            ))}
+        </div>
       )}
 
     </Page>

@@ -32,6 +32,15 @@ interface PracticeSession {
   /** Average response time per skill topic (ms) */
   avgResponseMsBySkill: Record<string, number>;
 
+  /** Number of times each skill was prompted (attempted + skipped) */
+  promptCountBySkill: Record<string, number>;
+
+  /** Number of correct answers per skill */
+  correctCountBySkill: Record<string, number>;
+
+  /** Number of attempted (correct + incorrect) answers per skill */
+  attemptedCountBySkill: Record<string, number>;
+
   nextQuestion(): void;
 
   markCorrect(): void;
@@ -67,6 +76,12 @@ export function PracticeSessionProvider({ children }: Props) {
   const responseMsRef = useRef<number[]>([]);
   // Per-skill: topic → list of response times
   const skillMsRef = useRef<Record<string, number[]>>({});
+  // Per-skill: topic → prompt count (attempted + skipped)
+  const promptCountRef = useRef<Record<string, number>>({});
+  // Per-skill: topic → correct count
+  const correctCountRef = useRef<Record<string, number>>({});
+  // Per-skill: topic → attempted count (correct + incorrect)
+  const attemptedCountRef = useRef<Record<string, number>>({});
   // Timestamp when the current question was shown
   const questionStartRef = useRef<number>(Date.now());
 
@@ -74,6 +89,21 @@ export function PracticeSessionProvider({ children }: Props) {
   const [avgResponseMsBySkill, setAvgResponseMsBySkill] = useState<
     Record<string, number>
   >({});
+  const [promptCountBySkill, setPromptCountBySkill] = useState<
+    Record<string, number>
+  >({});
+  const [correctCountBySkill, setCorrectCountBySkill] = useState<
+    Record<string, number>
+  >({});
+  const [attemptedCountBySkill, setAttemptedCountBySkill] = useState<
+    Record<string, number>
+  >({});
+
+  function incrementPromptCount(topic: string) {
+    promptCountRef.current[topic] =
+      (promptCountRef.current[topic] ?? 0) + 1;
+    setPromptCountBySkill({ ...promptCountRef.current });
+  }
 
   function recordResponseTime(topic: string) {
     const elapsed = Date.now() - questionStartRef.current;
@@ -106,7 +136,14 @@ export function PracticeSessionProvider({ children }: Props) {
   }
 
   function markCorrect() {
-    recordResponseTime(problem.question.topic);
+    // Normalize topic to lowercase so it matches the skill names in enabledSkills
+    const topic = problem.question.topic.toLowerCase();
+    incrementPromptCount(topic);
+    recordResponseTime(topic);
+    correctCountRef.current[topic] = (correctCountRef.current[topic] ?? 0) + 1;
+    attemptedCountRef.current[topic] = (attemptedCountRef.current[topic] ?? 0) + 1;
+    setCorrectCountBySkill({ ...correctCountRef.current });
+    setAttemptedCountBySkill({ ...attemptedCountRef.current });
     setCorrect((v) => v + 1);
     setAttempted((v) => v + 1);
     setCurrentStreak((streak) => {
@@ -118,13 +155,18 @@ export function PracticeSessionProvider({ children }: Props) {
   }
 
   function markIncorrect() {
-    recordResponseTime(problem.question.topic);
+    const topic = problem.question.topic.toLowerCase();
+    incrementPromptCount(topic);
+    recordResponseTime(topic);
+    attemptedCountRef.current[topic] = (attemptedCountRef.current[topic] ?? 0) + 1;
+    setAttemptedCountBySkill({ ...attemptedCountRef.current });
     setAttempted((v) => v + 1);
     setCurrentStreak(0);
     nextQuestion();
   }
 
   function skipQuestion() {
+    incrementPromptCount(problem.question.topic.toLowerCase());
     setSkipped((v) => v + 1);
     setCurrentStreak(0);
     nextQuestion();
@@ -138,8 +180,14 @@ export function PracticeSessionProvider({ children }: Props) {
     setBestStreak(0);
     responseMsRef.current = [];
     skillMsRef.current = {};
+    promptCountRef.current = {};
+    correctCountRef.current = {};
+    attemptedCountRef.current = {};
     setAvgResponseMs(null);
     setAvgResponseMsBySkill({});
+    setPromptCountBySkill({});
+    setCorrectCountBySkill({});
+    setAttemptedCountBySkill({});
     nextQuestion();
   }
 
@@ -154,6 +202,9 @@ export function PracticeSessionProvider({ children }: Props) {
         bestStreak,
         avgResponseMs,
         avgResponseMsBySkill,
+        promptCountBySkill,
+        correctCountBySkill,
+        attemptedCountBySkill,
         nextQuestion,
         markCorrect,
         markIncorrect,
