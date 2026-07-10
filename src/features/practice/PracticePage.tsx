@@ -327,7 +327,7 @@ export default function PracticePage() {
           {phase === "active" && secondsRemaining !== null && (
             <div className="mb-4 border-b border-slate-100 pb-4">
               <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-400">
-                Time Remaining
+                {timerPaused ? "Time Paused" : "Time Remaining"}
               </div>
               <div
                 className={[
