@@ -1,9 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Button } from "../../../shared/components/Button";
 import { Card } from "../../../shared/components/Card";
-
-import { useRef } from "react";
 
 import type { GeneratedProblem } from "../../../engine/models";
 import type { Question } from "../../../engine/models";
@@ -29,11 +27,18 @@ export default function QuestionCard({
 
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // When the question changes, reset state.
   useEffect(() => {
     setAnswer("");
     setResult("idle");
-    inputRef.current?.focus();
   }, [problem.question.id]);
+
+  // Once result returns to "idle" (input is re-enabled), focus the input.
+  useEffect(() => {
+    if (result === "idle") {
+      inputRef.current?.focus();
+    }
+  }, [result]);
 
   useEffect(() => {
     if (result === "idle") {
@@ -81,6 +86,7 @@ export default function QuestionCard({
 
         <input
           ref={inputRef}
+          autoFocus
           disabled={result !== "idle"}
           className="w-full rounded-lg border border-slate-300 p-3 text-3xl"
           value={answer}
@@ -134,7 +140,7 @@ export default function QuestionCard({
             </div>
 
             {typeof problem.metadata.explanation === "string" && (
-              <div className="mt-2 text-sm text-slate-600">
+             <div className="mt-2 text-sm text-slate-600">
                 {problem.metadata.explanation}
               </div>
             )}

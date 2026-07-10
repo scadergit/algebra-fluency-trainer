@@ -20,6 +20,7 @@ export default function PracticePage() {
   return (
     <Page title="Practice">
       <QuestionCard
+        key={question.question.id}
         problem={question}
         onCorrect={markCorrect}
         onIncorrect={markIncorrect}
