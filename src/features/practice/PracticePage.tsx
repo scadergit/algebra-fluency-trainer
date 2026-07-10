@@ -17,7 +17,7 @@ const DURATION_OPTIONS: Array<{
   seconds: number | null;
 }> = [
   { label: "No Timer", seconds: null },
-  { label: "30 sec", seconds: 30 },
+  { label: "30 sec", seconds: 5 }, // TODO: revert to 30
   { label: "1 min", seconds: 60 },
   { label: "2 min", seconds: 120 },
   { label: "5 min", seconds: 300 },
@@ -60,6 +60,7 @@ export default function PracticePage() {
     currentStreak,
     bestStreak,
     avgResponseMs,
+    avgResponseMsBySkill,
     markCorrect,
     markIncorrect,
     skipQuestion,
@@ -152,6 +153,10 @@ export default function PracticePage() {
         skipped: stats.skipped,
         bestStreak: stats.bestStreak,
         avgResponseMs: stats.avgResponseMs ?? undefined,
+        avgResponseMsBySkill:
+          Object.keys(avgResponseMsBySkill).length > 0
+            ? avgResponseMsBySkill
+            : undefined,
       });
       return;
     }

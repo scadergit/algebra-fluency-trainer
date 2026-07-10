@@ -2,6 +2,7 @@ import { Card } from "../../shared/components/Card";
 import { Page } from "../../shared/components/Page";
 
 import { useSessionHistory } from "../../shared/hooks/useSessionHistory";
+import { AvgTimeChart } from "./AvgTimeChart";
 
 import type { SessionRecord } from "../../types/SessionRecord";
 
@@ -124,51 +125,61 @@ export default function StatisticsPage() {
           </p>
         </Card>
       ) : (
-        <Card>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="border-b border-slate-200">
-                  <th className="pb-3 pr-4 text-xs font-semibold uppercase tracking-wide text-slate-400">
-                    Date
-                  </th>
-                  <th className="pb-3 pr-4 text-xs font-semibold uppercase tracking-wide text-slate-400">
-                    Duration
-                  </th>
-                  <th className="pb-3 pr-4 text-xs font-semibold uppercase tracking-wide text-slate-400">
-                    Topics
-                  </th>
-                  <th className="pb-3 pr-4 text-center text-xs font-semibold uppercase tracking-wide text-slate-400">
-                    ✅
-                  </th>
-                  <th className="pb-3 pr-4 text-center text-xs font-semibold uppercase tracking-wide text-slate-400">
-                    ❌
-                  </th>
-                  <th className="pb-3 pr-4 text-center text-xs font-semibold uppercase tracking-wide text-slate-400">
-                    Skip
-                  </th>
-                  <th className="pb-3 pr-4 text-center text-xs font-semibold uppercase tracking-wide text-slate-400">
-                    Acc.
-                  </th>
-                  <th className="pb-3 pr-4 text-center text-xs font-semibold uppercase tracking-wide text-slate-400">
-                    🏆
-                  </th>
-                  <th className="pb-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-400">
-                    ⏱ Avg
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {history.map((record, index) => (
-                  <HistoryRow
-                    key={`${record.completedAt}-${index}`}
-                    record={record}
-                  />
-                ))}
-              </tbody>
-            </table>
+        <>
+          {/* Line chart — only rendered when per-skill data exists */}
+          <Card>
+            <AvgTimeChart history={history} />
+          </Card>
+
+          {/* Session history table */}
+          <div className="mt-6">
+            <Card>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="border-b border-slate-200">
+                      <th className="pb-3 pr-4 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                        Date
+                      </th>
+                      <th className="pb-3 pr-4 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                        Duration
+                      </th>
+                      <th className="pb-3 pr-4 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                        Topics
+                      </th>
+                      <th className="pb-3 pr-4 text-center text-xs font-semibold uppercase tracking-wide text-slate-400">
+                        ✅
+                      </th>
+                      <th className="pb-3 pr-4 text-center text-xs font-semibold uppercase tracking-wide text-slate-400">
+                        ❌
+                      </th>
+                      <th className="pb-3 pr-4 text-center text-xs font-semibold uppercase tracking-wide text-slate-400">
+                        Skip
+                      </th>
+                      <th className="pb-3 pr-4 text-center text-xs font-semibold uppercase tracking-wide text-slate-400">
+                        Acc.
+                      </th>
+                      <th className="pb-3 pr-4 text-center text-xs font-semibold uppercase tracking-wide text-slate-400">
+                        🏆
+                      </th>
+                      <th className="pb-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-400">
+                        ⏱ Avg
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {history.map((record, index) => (
+                      <HistoryRow
+                        key={`${record.completedAt}-${index}`}
+                        record={record}
+                      />
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
           </div>
-        </Card>
+        </>
       )}
 
     </Page>

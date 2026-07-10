@@ -29,6 +29,9 @@ interface PracticeSession {
   /** Average response time in milliseconds for attempted questions */
   avgResponseMs: number | null;
 
+  /** Average response time per skill topic (ms) */
+  avgResponseMsBySkill: Record<string, number>;
+
   nextQuestion(): void;
 
   markCorrect(): void;
@@ -41,55 +44,60 @@ interface PracticeSession {
 }
 
 const PracticeSessionContext =
-  createContext<PracticeSession | null>(
-    null,
-  );
+  createContext<PracticeSession | null>(null);
 
 interface Props {
   children: ReactNode;
 }
 
-export function PracticeSessionProvider({
-  children,
-}: Props) {
+export function PracticeSessionProvider({ children }: Props) {
   const { settings } = useSettings();
 
-  const [problem, setProblem] =
-    useState<GeneratedProblem>(() =>
-      generateQuestion(settings),
-    );
+  const [problem, setProblem] = useState<GeneratedProblem>(() =>
+    generateQuestion(settings),
+  );
 
-  const [correct, setCorrect] =
-    useState(0);
+  const [correct, setCorrect] = useState(0);
+  const [attempted, setAttempted] = useState(0);
+  const [skipped, setSkipped] = useState(0);
+  const [currentStreak, setCurrentStreak] = useState(0);
+  const [bestStreak, setBestStreak] = useState(0);
 
-  const [attempted, setAttempted] =
-    useState(0);
-
-  const [skipped, setSkipped] =
-    useState(0);
-
-  const [currentStreak, setCurrentStreak] =
-    useState(0);
-
-  const [bestStreak, setBestStreak] =
-    useState(0);
-
-  // Accumulated response times (ms) for attempted questions
+  // All response times (ms) for attempted questions
   const responseMsRef = useRef<number[]>([]);
+  // Per-skill: topic → list of response times
+  const skillMsRef = useRef<Record<string, number[]>>({});
   // Timestamp when the current question was shown
   const questionStartRef = useRef<number>(Date.now());
 
-  const [avgResponseMs, setAvgResponseMs] =
-    useState<number | null>(null);
+  const [avgResponseMs, setAvgResponseMs] = useState<number | null>(null);
+  const [avgResponseMsBySkill, setAvgResponseMsBySkill] = useState<
+    Record<string, number>
+  >({});
 
-  function recordResponseTime() {
+  function recordResponseTime(topic: string) {
     const elapsed = Date.now() - questionStartRef.current;
+
+    // Overall average
     responseMsRef.current.push(elapsed);
-    const times = responseMsRef.current;
-    const avg = Math.round(
-      times.reduce((a, b) => a + b, 0) / times.length,
+    const all = responseMsRef.current;
+    setAvgResponseMs(
+      Math.round(all.reduce((a, b) => a + b, 0) / all.length),
     );
-    setAvgResponseMs(avg);
+
+    // Per-skill average
+    if (!skillMsRef.current[topic]) {
+      skillMsRef.current[topic] = [];
+    }
+    skillMsRef.current[topic].push(elapsed);
+
+    const updated: Record<string, number> = {};
+    for (const [skill, times] of Object.entries(skillMsRef.current)) {
+      updated[skill] = Math.round(
+        times.reduce((a, b) => a + b, 0) / times.length,
+      );
+    }
+    setAvgResponseMsBySkill(updated);
   }
 
   function nextQuestion() {
@@ -98,32 +106,26 @@ export function PracticeSessionProvider({
   }
 
   function markCorrect() {
-    recordResponseTime();
-    setCorrect((value) => value + 1);
-    setAttempted((value) => value + 1);
-
+    recordResponseTime(problem.question.topic);
+    setCorrect((v) => v + 1);
+    setAttempted((v) => v + 1);
     setCurrentStreak((streak) => {
       const next = streak + 1;
-
-      setBestStreak((best) =>
-        Math.max(best, next),
-      );
-
+      setBestStreak((best) => Math.max(best, next));
       return next;
     });
-
     nextQuestion();
   }
 
   function markIncorrect() {
-    recordResponseTime();
-    setAttempted((value) => value + 1);
+    recordResponseTime(problem.question.topic);
+    setAttempted((v) => v + 1);
     setCurrentStreak(0);
     nextQuestion();
   }
 
   function skipQuestion() {
-    setSkipped((value) => value + 1);
+    setSkipped((v) => v + 1);
     setCurrentStreak(0);
     nextQuestion();
   }
@@ -135,7 +137,9 @@ export function PracticeSessionProvider({
     setCurrentStreak(0);
     setBestStreak(0);
     responseMsRef.current = [];
+    skillMsRef.current = {};
     setAvgResponseMs(null);
+    setAvgResponseMsBySkill({});
     nextQuestion();
   }
 
@@ -149,6 +153,7 @@ export function PracticeSessionProvider({
         currentStreak,
         bestStreak,
         avgResponseMs,
+        avgResponseMsBySkill,
         nextQuestion,
         markCorrect,
         markIncorrect,
@@ -162,9 +167,7 @@ export function PracticeSessionProvider({
 }
 
 export function usePracticeSession() {
-  const context = useContext(
-    PracticeSessionContext,
-  );
+  const context = useContext(PracticeSessionContext);
 
   if (!context) {
     throw new Error(
