@@ -135,32 +135,6 @@ export default function SettingsPage() {
 
         </Card>
 
-        <Card>
-
-          <h2 className="mb-4 text-xl font-semibold">
-            Answers
-          </h2>
-
-          <label className="flex items-center gap-3">
-            <input
-              type="checkbox"
-              checked={
-                settings.allowNegativeAnswers
-              }
-              onChange={(event) =>
-                setSettings({
-                  ...settings,
-                  allowNegativeAnswers:
-                    event.target.checked,
-                })
-              }
-            />
-
-            Allow Negative Answers
-          </label>
-
-        </Card>
-
       </div>
     </Page>
   );

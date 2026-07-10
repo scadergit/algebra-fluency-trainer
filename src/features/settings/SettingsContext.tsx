@@ -20,7 +20,6 @@ const defaultSettings: AppSettings = {
   maxNumber: 9,
 
   allowNegativeNumbers: false,
-  allowNegativeAnswers: false,
 
   allowFractions: false,
   allowDecimals: false,

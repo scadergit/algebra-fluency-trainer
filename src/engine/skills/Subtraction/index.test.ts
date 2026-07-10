@@ -18,7 +18,6 @@ const mockedRandom = vi.mocked(random);
 const baseSettings: AppSettings = {
   maxNumber: 10,
   allowNegativeNumbers: false,
-  allowNegativeAnswers: false,
   allowFractions: false,
   allowDecimals: false,
   enabledSkills: ['subtraction'],
@@ -40,10 +39,8 @@ describe('SubtractionSkill', () => {
     // Arrange
     mockedRandom.randomInteger.mockReturnValueOnce(10).mockReturnValueOnce(5);
 
-    const settings: AppSettings = { ...baseSettings, maxNumber: 10, allowNegativeNumbers: false, allowNegativeAnswers: false };
-
     // Act
-    const problem = SubtractionSkill.generate(settings);
+    const problem = SubtractionSkill.generate(baseSettings);
 
     // Assert
     expect(problem.question.prompt).toBe('10 - 5');
@@ -52,40 +49,23 @@ describe('SubtractionSkill', () => {
     expect(mockedRandom.randomInteger).toHaveBeenCalledTimes(2);
   });
 
-  it('should swap operands to ensure a positive answer when required', () => {
-    // Arrange
+  it('should allow a negative answer when allowNegativeNumbers is false (a < b)', () => {
+    // Arrange: a=5, b=10 → answer is -5
     mockedRandom.randomInteger.mockReturnValueOnce(5).mockReturnValueOnce(10);
 
-    const settings: AppSettings = { ...baseSettings, maxNumber: 10, allowNegativeNumbers: false, allowNegativeAnswers: false };
-
     // Act
-    const problem = SubtractionSkill.generate(settings);
+    const problem = SubtractionSkill.generate(baseSettings);
 
-    // Assert: The operands should be swapped.
-    expect(problem.question.prompt).toBe('10 - 5');
-    expect(problem.evaluate('5').correct).toBe(true);
-  });
-
-  it('should generate a problem with a negative answer when allowed', () => {
-    // Arrange
-    mockedRandom.randomInteger.mockReturnValueOnce(5).mockReturnValueOnce(10);
-
-    const settings: AppSettings = { ...baseSettings, maxNumber: 10, allowNegativeNumbers: false, allowNegativeAnswers: true };
-
-    // Act
-    const problem = SubtractionSkill.generate(settings);
-
-    // Assert: Operands are not swapped.
+    // Assert: operands are NOT swapped; negative answers are natural
     expect(problem.question.prompt).toBe('5 - 10');
     expect(problem.evaluate('-5').correct).toBe(true);
-    expect(mockedRandom.randomInteger).toHaveBeenCalledTimes(2);
   });
 
-  it('should generate a problem with negative operands but ensure a positive answer', () => {
-    // Arrange: a = -2, b = -5. a - b = 3.
+  it('should generate a problem with negative operands when allowNegativeNumbers is true', () => {
+    // Arrange: a = -2, b = -5 → answer = 3
     mockedRandom.randomInteger.mockReturnValueOnce(-2).mockReturnValueOnce(-5);
 
-    const settings: AppSettings = { ...baseSettings, maxNumber: 10, allowNegativeNumbers: true, allowNegativeAnswers: false };
+    const settings: AppSettings = { ...baseSettings, allowNegativeNumbers: true };
 
     // Act
     const problem = SubtractionSkill.generate(settings);
@@ -96,17 +76,17 @@ describe('SubtractionSkill', () => {
     expect(mockedRandom.randomInteger).toHaveBeenCalledWith(-10, 10);
   });
 
-  it('should swap negative operands to ensure a positive answer when required', () => {
-    // Arrange: a = -5, b = -2. a - b = -3. Should be swapped.
+  it('should produce a negative answer with negative operands when allowNegativeNumbers is true', () => {
+    // Arrange: a = -5, b = -2 → answer = -3
     mockedRandom.randomInteger.mockReturnValueOnce(-5).mockReturnValueOnce(-2);
 
-    const settings: AppSettings = { ...baseSettings, maxNumber: 10, allowNegativeNumbers: true, allowNegativeAnswers: false };
+    const settings: AppSettings = { ...baseSettings, allowNegativeNumbers: true };
 
     // Act
     const problem = SubtractionSkill.generate(settings);
 
-    // Assert: Swapped to -2 - -5
-    expect(problem.question.prompt).toBe('-2 - -5');
-    expect(problem.evaluate('3').correct).toBe(true);
+    // Assert: no swapping; negative answers are allowed
+    expect(problem.question.prompt).toBe('-5 - -2');
+    expect(problem.evaluate('-3').correct).toBe(true);
   });
 });

@@ -18,7 +18,6 @@ const mockedRandom = vi.mocked(random);
 const baseSettings: AppSettings = {
   maxNumber: 10,
   allowNegativeNumbers: false,
-  allowNegativeAnswers: false,
   allowFractions: false,
   allowDecimals: false,
   enabledSkills: ["multiplication"],

@@ -7,7 +7,6 @@ describe("Division Skill", () => {
     const settings = {
       maxNumber: 9,
       allowNegativeNumbers: false,
-      allowNegativeAnswers: false,
       enabledSkills: [],
       allowDecimals: false,
       allowFractions: false,

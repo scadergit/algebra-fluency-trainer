@@ -3,8 +3,6 @@ export interface AppSettings {
 
   allowNegativeNumbers: boolean;
 
-  allowNegativeAnswers: boolean;
-
   allowFractions: boolean;
 
   allowDecimals: boolean;

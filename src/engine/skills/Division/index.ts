@@ -18,9 +18,23 @@ export const divisionSkill: MathSkill = {
   generate(
     settings: AppSettings,
   ): GeneratedProblem {
-    const answer = randomInteger(1, settings.maxNumber);
+    const { maxNumber, allowNegativeNumbers } = settings;
 
-    const divisor = randomInteger(1, settings.maxNumber);
+    // Answer and divisor are always positive integers; we then optionally
+    // negate one of them so the dividend (and answer) can be negative.
+    const absAnswer = randomInteger(1, maxNumber);
+    const absDivisor = randomInteger(1, maxNumber);
+
+    let answer = absAnswer;
+    let divisor = absDivisor;
+
+    if (allowNegativeNumbers) {
+      // Randomly negate exactly one of the two to produce a negative answer
+      if (Math.random() < 0.5) {
+        answer = -absAnswer;
+        divisor = absDivisor;
+      }
+    }
 
     const dividend = answer * divisor;
 
