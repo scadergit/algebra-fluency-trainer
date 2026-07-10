@@ -8,7 +8,12 @@ import type { GeneratedProblem } from "../../../engine/models";
 interface QuestionCardProps {
   problem: GeneratedProblem;
   onCorrect(): void;
+  /** Called when the user dismisses the incorrect panel and is ready to continue */
   onIncorrect(): void;
+  /** Called when the incorrect panel appears (so parent can pause the timer) */
+  onPause?(): void;
+  /** Called when the incorrect panel is dismissed (so parent can resume the timer) */
+  onResume?(): void;
   /** When set, the card shows this text instead of the question and disables input */
   countdownLabel?: string;
 }
@@ -17,37 +22,29 @@ export default function QuestionCard({
   problem,
   onCorrect,
   onIncorrect,
+  onPause,
+  onResume,
   countdownLabel,
 }: QuestionCardProps) {
   const [answer, setAnswer] = useState("");
 
   // "correct" flash: shown briefly after a correct answer but doesn't block input
   const [showCorrect, setShowCorrect] = useState(false);
-  // "incorrect" state: blocks input until auto-dismissed
+  // "incorrect" state: blocks input and waits for user to continue
   const [showIncorrect, setShowIncorrect] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const correctFlashTimer = useRef<number | null>(null);
-  const incorrectTimer = useRef<number | null>(null);
 
-  function clearTimers() {
+  function clearFlashTimer() {
     if (correctFlashTimer.current !== null) {
       window.clearTimeout(correctFlashTimer.current);
       correctFlashTimer.current = null;
     }
-    if (incorrectTimer.current !== null) {
-      window.clearTimeout(incorrectTimer.current);
-      incorrectTimer.current = null;
-    }
   }
 
-  // When the question changes, clear any lingering incorrect state.
-  // (Correct flash is intentionally left to fade on its own.)
+  // When the question changes, clear incorrect state.
   useEffect(() => {
-    if (incorrectTimer.current !== null) {
-      window.clearTimeout(incorrectTimer.current);
-      incorrectTimer.current = null;
-    }
     setShowIncorrect(false);
     setAnswer("");
     inputRef.current?.focus();
@@ -61,11 +58,22 @@ export default function QuestionCard({
   }, [countdownLabel]);
 
   // Cleanup on unmount
-  useEffect(() => clearTimers, []);
+  useEffect(() => clearFlashTimer, []);
+
+  function continueAfterIncorrect() {
+    setShowIncorrect(false);
+    onResume?.();
+    onIncorrect();
+  }
 
   function submit() {
     if (countdownLabel) return;
-    if (showIncorrect) return;
+
+    // While showing incorrect, Enter/button acts as "Continue"
+    if (showIncorrect) {
+      continueAfterIncorrect();
+      return;
+    }
 
     if (problem.evaluate(answer).correct) {
       // Immediately advance — no delay
@@ -74,26 +82,18 @@ export default function QuestionCard({
       onCorrect();
 
       // Hide the green flash after 800ms (non-blocking)
-      if (correctFlashTimer.current !== null) {
-        window.clearTimeout(correctFlashTimer.current);
-      }
+      clearFlashTimer();
       correctFlashTimer.current = window.setTimeout(() => {
         correctFlashTimer.current = null;
         setShowCorrect(false);
       }, 800);
     } else {
       setShowIncorrect(true);
-
-      // Auto-dismiss incorrect after 1.5s then advance
-      incorrectTimer.current = window.setTimeout(() => {
-        incorrectTimer.current = null;
-        setShowIncorrect(false);
-        onIncorrect();
-      }, 1500);
+      onPause?.();
     }
   }
 
-  const isDisabled = showIncorrect || !!countdownLabel;
+  const isDisabled = !!countdownLabel;
 
   return (
     <Card>
@@ -127,7 +127,8 @@ export default function QuestionCard({
           ref={inputRef}
           autoFocus
           disabled={isDisabled}
-          className="w-full rounded-lg border border-slate-300 p-3 text-3xl disabled:bg-slate-50 disabled:text-slate-400"
+          readOnly={showIncorrect}
+          className="w-full rounded-lg border border-slate-300 p-3 text-3xl disabled:bg-slate-50 disabled:text-slate-400 read-only:bg-slate-50 read-only:text-slate-400"
           value={answer}
           onChange={(event) => setAnswer(event.target.value)}
           onKeyDown={(event) => {
@@ -137,7 +138,7 @@ export default function QuestionCard({
 
         <div className="flex gap-3">
           <Button disabled={isDisabled} onClick={submit}>
-            Check
+            {showIncorrect ? "Continue" : "Check"}
           </Button>
         </div>
 

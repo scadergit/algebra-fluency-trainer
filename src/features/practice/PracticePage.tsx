@@ -99,6 +99,7 @@ export default function PracticePage() {
   } | null>(null);
 
   const timerRef = useRef<number | null>(null);
+  const [timerPaused, setTimerPaused] = useState(false);
 
   // Keep refs to the latest session state so the timer effect (which only
   // re-runs on secondsRemaining changes) always reads current values.
@@ -134,6 +135,15 @@ export default function PracticePage() {
     }
   }
 
+  function pauseTimer() {
+    stopTimer();
+    setTimerPaused(true);
+  }
+
+  function resumeTimer() {
+    setTimerPaused(false);
+  }
+
   // ── Countdown step ticker ─────────────────────────────────────────────────
 
   useEffect(() => {
@@ -155,7 +165,7 @@ export default function PracticePage() {
   // ── Session timer ticker ──────────────────────────────────────────────────
 
   useEffect(() => {
-    if (phase !== "active" || secondsRemaining === null) {
+    if (phase !== "active" || secondsRemaining === null || timerPaused) {
       return;
     }
 
@@ -208,7 +218,7 @@ export default function PracticePage() {
 
     return () => stopTimer();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase, secondsRemaining]);
+  }, [phase, secondsRemaining, timerPaused]);
 
   // Cleanup on unmount
   useEffect(() => () => stopTimer(), []);
@@ -304,6 +314,8 @@ export default function PracticePage() {
             problem={question}
             onCorrect={markCorrect}
             onIncorrect={markIncorrect}
+            onPause={pauseTimer}
+            onResume={resumeTimer}
             countdownLabel={countdownLabel}
           />
         </div>
@@ -317,10 +329,18 @@ export default function PracticePage() {
               <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-400">
                 Time Remaining
               </div>
-              <TimerDisplay
-                secondsRemaining={secondsRemaining}
-                totalSeconds={selectedDuration!}
-              />
+              <div
+                className={[
+                  "rounded-lg transition-colors duration-300",
+                  timerPaused ? "bg-slate-100" : "bg-transparent",
+                ].join(" ")}
+              >
+                <TimerDisplay
+                  secondsRemaining={secondsRemaining}
+                  totalSeconds={selectedDuration!}
+                  paused={timerPaused}
+                />
+              </div>
             </div>
           )}
 
