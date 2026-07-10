@@ -93,7 +93,7 @@ function buildSkillStats(history: SessionRecord[]): SkillStats[] {
 // ── StatisticsPage ────────────────────────────────────────────────────────────
 
 export default function StatisticsPage() {
-  const { history, clearHistory } = useSessionHistory();
+  const { history } = useSessionHistory();
 
   const skillStats = buildSkillStats(history);
   const hasData = skillStats.some((s) => s.sessionCount > 0);
@@ -101,21 +101,12 @@ export default function StatisticsPage() {
   return (
     <Page title="Statistics">
 
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6">
         <p className="text-sm text-slate-500">
           {history.length === 0
             ? "No timed sessions recorded yet."
             : `${history.length} session${history.length === 1 ? "" : "s"} recorded`}
         </p>
-
-        {history.length > 0 && (
-          <button
-            className="rounded-lg bg-red-600 px-3 py-1.5 text-sm text-white hover:bg-red-700"
-            onClick={clearHistory}
-          >
-            Clear History
-          </button>
-        )}
       </div>
 
       {!hasData ? (
