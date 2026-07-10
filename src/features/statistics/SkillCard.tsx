@@ -2,7 +2,8 @@
  * SkillCard
  *
  * Displays aggregate statistics for a single skill across all sessions,
- * plus a small sparkline showing avg response-time trend over time.
+ * plus a mini line chart showing QPM trend over sessions with a fixed
+ * Y-axis from 0 to 50 (steps of 10).
  */
 
 // ── Colour palette ────────────────────────────────────────────────────────────
@@ -29,73 +30,139 @@ function capitalize(s: string) {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-function formatMs(ms: number): string {
-  if (ms < 1000) return `${Math.round(ms)}ms`;
-  return `${(ms / 1000).toFixed(1)}s`;
+/** Convert average milliseconds per question to questions per minute. */
+function msToQpm(ms: number): number {
+  if (ms <= 0) return 0;
+  return 60_000 / ms;
 }
 
-/** Always express a duration in seconds (used for improvement deltas). */
-function formatDeltaS(ms: number): string {
-  return `${(ms / 1000).toFixed(2)}s`;
-}
+// ── QPM Chart ─────────────────────────────────────────────────────────────────
 
-// ── Sparkline ─────────────────────────────────────────────────────────────────
+// Chart dimensions
+const CW = 220;
+const CH = 80;
+const CP = { top: 4, right: 6, bottom: 4, left: 30 };
+const INNER_CW = CW - CP.left - CP.right;
+const INNER_CH = CH - CP.top - CP.bottom;
 
-const SW = 200;
-const SH = 60;
-const SP = { top: 6, right: 6, bottom: 6, left: 6 };
-const INNER_SW = SW - SP.left - SP.right;
-const INNER_SH = SH - SP.top - SP.bottom;
+// Fixed Y-axis domain: 0–50 QPM
+// Three labelled threshold gridlines are shown
+const Y_MIN = 0;
+const Y_MAX = 50;
+const Y_THRESHOLDS: { value: number; label: string }[] = [
+  { value: 10, label: "Base" },
+  { value: 30, label: "Avg" },
+  { value: 50, label: "Goal" },
+];
 
-interface SparklineProps {
-  values: number[]; // avg ms per practice session, chronological
+interface QpmChartProps {
+  /** QPM values per practice session, chronological */
+  values: number[];
   color: string;
 }
 
-function Sparkline({ values, color }: SparklineProps) {
-  if (values.length < 2) {
-    // Single point — just draw a dot in the centre
-    return (
-      <svg viewBox={`0 0 ${SW} ${SH}`} className="w-full" style={{ maxHeight: SH }}>
-        <circle cx={SW / 2} cy={SH / 2} r={4} fill={color} />
-      </svg>
-    );
-  }
-
-  const minV = Math.min(...values);
-  const maxV = Math.max(...values);
-  const range = maxV - minV || 1;
-
+function QpmChart({ values, color }: QpmChartProps) {
   const xScale = (i: number) =>
-    SP.left + (i / (values.length - 1)) * INNER_SW;
-  const yScale = (v: number) =>
-    SP.top + INNER_SH - ((v - minV) / range) * INNER_SH;
+    values.length === 1
+      ? CP.left + INNER_CW / 2
+      : CP.left + (i / (values.length - 1)) * INNER_CW;
 
-  const d = values
-    .map((v, i) => `${i === 0 ? "M" : "L"} ${xScale(i)} ${yScale(v)}`)
-    .join(" ");
+  const yScale = (v: number) =>
+    CP.top + INNER_CH - ((v - Y_MIN) / (Y_MAX - Y_MIN)) * INNER_CH;
 
   const lastX = xScale(values.length - 1);
   const lastY = yScale(values[values.length - 1]);
 
+  const d =
+    values.length >= 2
+      ? values
+          .map((v, i) => `${i === 0 ? "M" : "L"} ${xScale(i)} ${yScale(v)}`)
+          .join(" ")
+      : null;
+
   return (
     <svg
-      viewBox={`0 0 ${SW} ${SH}`}
+      viewBox={`0 0 ${CW} ${CH}`}
       className="w-full"
-      style={{ maxHeight: SH }}
-      aria-label="Response time trend sparkline"
+      style={{ maxHeight: CH }}
+      aria-label="Questions per minute trend chart"
     >
-      <path
-        d={d}
-        fill="none"
-        stroke={color}
-        strokeWidth={2}
-        strokeLinejoin="round"
-        strokeLinecap="round"
-        opacity={0.7}
+      {/* Y-axis threshold gridlines + labels */}
+      {Y_THRESHOLDS.map(({ value, label }) => {
+        const y = yScale(value);
+        return (
+          <g key={value}>
+            <line
+              x1={CP.left}
+              x2={CP.left + INNER_CW}
+              y1={y}
+              y2={y}
+              stroke="#e2e8f0"
+              strokeWidth={1}
+            />
+            {label && (
+              <text
+                x={CP.left - 3}
+                y={y + 3.5}
+                textAnchor="end"
+                fontSize={9}
+                fill="#94a3b8"
+              >
+                {label}
+              </text>
+            )}
+          </g>
+        );
+      })}
+
+      {/* Y-axis line */}
+      <line
+        x1={CP.left}
+        x2={CP.left}
+        y1={CP.top}
+        y2={CP.top + INNER_CH}
+        stroke="#cbd5e1"
+        strokeWidth={1}
       />
+
+      {/* Line connecting data points */}
+      {d && (
+        <path
+          d={d}
+          fill="none"
+          stroke={color}
+          strokeWidth={2}
+          strokeLinejoin="round"
+          strokeLinecap="round"
+          opacity={0.8}
+        />
+      )}
+
+      {/* All data points */}
+      {values.map((v, i) => (
+        <circle
+          key={i}
+          cx={xScale(i)}
+          cy={yScale(v)}
+          r={2.5}
+          fill={color}
+          opacity={0.5}
+        >
+          <title>Practice {i + 1}: {v.toFixed(1)} q/min</title>
+        </circle>
+      ))}
+
       {/* Highlight last point */}
-      <circle cx={lastX} cy={lastY} r={3.5} fill={color} stroke="white" strokeWidth={1.5} />
+      <circle
+        cx={lastX}
+        cy={lastY}
+        r={3.5}
+        fill={color}
+        stroke="white"
+        strokeWidth={1.5}
+      >
+        <title>Latest: {values[values.length - 1].toFixed(1)} q/min</title>
+      </circle>
     </svg>
   );
 }
@@ -128,7 +195,6 @@ export function SkillCard({ stats }: Props) {
     avgMsHistory,
     totalAttempted,
     totalCorrect,
-    totalPrompts,
     sessionCount,
   } = stats;
 
@@ -139,40 +205,11 @@ export function SkillCard({ stats }: Props) {
       ? `${Math.round((totalCorrect / totalAttempted) * 100)}%`
       : "—";
 
-  const latestAvgMs =
-    avgMsHistory.length > 0
-      ? avgMsHistory[avgMsHistory.length - 1]
-      : undefined;
+  // Convert ms history to QPM history
+  const qpmHistory = avgMsHistory.map(msToQpm);
 
-  // Compare latest session to the previous one (second-to-last)
-  const prevAvgMs =
-    avgMsHistory.length >= 2
-      ? avgMsHistory[avgMsHistory.length - 2]
-      : undefined;
-
-  // Improvement: negative delta = faster (good), positive = slower
-  const improvement =
-    prevAvgMs !== undefined && latestAvgMs !== undefined
-      ? latestAvgMs - prevAvgMs
-      : null;
-
-  const improvementLabel =
-    improvement === null
-      ? null
-      : improvement < 0
-        ? `▲ ${formatDeltaS(Math.abs(improvement))} faster since last session`
-        : improvement > 0
-          ? `▼ ${formatDeltaS(improvement)} slower since last session`
-          : "No change since last session";
-
-  const improvementColor =
-    improvement === null
-      ? ""
-      : improvement < 0
-        ? "text-green-600"
-        : improvement > 0
-          ? "text-red-500"
-          : "text-slate-400";
+  const latestQpm =
+    qpmHistory.length > 0 ? qpmHistory[qpmHistory.length - 1] : undefined;
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -187,7 +224,7 @@ export function SkillCard({ stats }: Props) {
       </div>
 
       {/* Key stats */}
-      <div className="mb-4 grid grid-cols-3 gap-3 text-center">
+      <div className="mb-4 grid grid-cols-2 gap-3 text-center">
         <div>
           <div className="text-xl font-bold text-slate-800">
             {overallAccuracy}
@@ -196,28 +233,15 @@ export function SkillCard({ stats }: Props) {
         </div>
         <div>
           <div className="text-xl font-bold text-slate-800">
-            {totalPrompts}
+            {latestQpm !== undefined ? latestQpm.toFixed(1) : "—"}
           </div>
-          <div className="text-xs text-slate-400">Prompts</div>
-        </div>
-        <div>
-          <div className="text-xl font-bold text-slate-800">
-            {latestAvgMs !== undefined ? formatMs(latestAvgMs) : "—"}
-          </div>
-          <div className="text-xs text-slate-400">Latest avg</div>
+          <div className="text-xs text-slate-400">avg q/min</div>
         </div>
       </div>
 
-      {/* Improvement badge */}
-      {improvementLabel && (
-        <div className={`mb-3 text-xs font-medium ${improvementColor}`}>
-          {improvementLabel}
-        </div>
-      )}
-
-      {/* Sparkline */}
-      {avgMsHistory.length > 0 && (
-        <Sparkline values={avgMsHistory} color={color} />
+      {/* QPM chart with Y-axis thresholds 0–50 */}
+      {qpmHistory.length > 0 && (
+        <QpmChart values={qpmHistory} color={color} />
       )}
     </div>
   );
