@@ -47,6 +47,12 @@ function accuracy(record: SessionRecord): string {
   return `${Math.round((record.correct / attempted) * 100)}%`;
 }
 
+function formatAvgTime(ms: number | undefined): string {
+  if (ms === undefined) return "—";
+  if (ms < 1000) return `${ms}ms`;
+  return `${(ms / 1000).toFixed(1)}s`;
+}
+
 // ── Table row ─────────────────────────────────────────────────────────────────
 
 function HistoryRow({ record }: { record: SessionRecord }) {
@@ -76,8 +82,11 @@ function HistoryRow({ record }: { record: SessionRecord }) {
       <td className="py-3 pr-4 text-center text-sm font-semibold text-slate-700">
         {accuracy(record)}
       </td>
-      <td className="py-3 text-center text-sm text-slate-500">
+      <td className="py-3 pr-4 text-center text-sm text-slate-500">
         {record.bestStreak}
+      </td>
+      <td className="py-3 text-center text-sm text-slate-500">
+        {formatAvgTime(record.avgResponseMs)}
       </td>
     </tr>
   );
@@ -141,8 +150,11 @@ export default function StatisticsPage() {
                   <th className="pb-3 pr-4 text-center text-xs font-semibold uppercase tracking-wide text-slate-400">
                     Acc.
                   </th>
-                  <th className="pb-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-400">
+                  <th className="pb-3 pr-4 text-center text-xs font-semibold uppercase tracking-wide text-slate-400">
                     🏆
+                  </th>
+                  <th className="pb-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    ⏱ Avg
                   </th>
                 </tr>
               </thead>

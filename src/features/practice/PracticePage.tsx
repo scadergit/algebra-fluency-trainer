@@ -59,6 +59,7 @@ export default function PracticePage() {
     skipped,
     currentStreak,
     bestStreak,
+    avgResponseMs,
     markCorrect,
     markIncorrect,
     skipQuestion,
@@ -93,6 +94,7 @@ export default function PracticePage() {
     skipped: number;
     bestStreak: number;
     durationSeconds: number;
+    avgResponseMs: number | null;
   } | null>(null);
 
   const timerRef = useRef<number | null>(null);
@@ -137,6 +139,7 @@ export default function PracticePage() {
         skipped,
         bestStreak,
         durationSeconds: selectedDuration ?? 0,
+        avgResponseMs,
       };
       setPhase("ended");
       setFinalStats(stats);
@@ -148,6 +151,7 @@ export default function PracticePage() {
         incorrect: stats.incorrect,
         skipped: stats.skipped,
         bestStreak: stats.bestStreak,
+        avgResponseMs: stats.avgResponseMs ?? undefined,
       });
       return;
     }
@@ -211,6 +215,7 @@ export default function PracticePage() {
             skipped={finalStats.skipped}
             bestStreak={finalStats.bestStreak}
             durationSeconds={finalStats.durationSeconds}
+            avgResponseMs={finalStats.avgResponseMs ?? undefined}
             onRestart={() => selectDuration(selectedDuration)}
           />
         </div>
@@ -288,6 +293,16 @@ export default function PracticePage() {
           <StatCell label="Accuracy" value={accuracy} />
           <StatCell label="🔥 Streak" value={currentStreak} />
           <StatCell label="🏆 Best" value={bestStreak} />
+          {avgResponseMs !== null && (
+            <StatCell
+              label="⏱ Avg"
+              value={
+                avgResponseMs < 1000
+                  ? `${avgResponseMs}ms`
+                  : `${(avgResponseMs / 1000).toFixed(1)}s`
+              }
+            />
+          )}
 
           <div className="mt-4">
             <button
