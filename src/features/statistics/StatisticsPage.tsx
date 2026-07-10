@@ -1,67 +1,163 @@
 import { Card } from "../../shared/components/Card";
 import { Page } from "../../shared/components/Page";
 
-import { usePracticeSession } from "../practice/session/PracticeSessionContext";
+import { useSessionHistory } from "../../shared/hooks/useSessionHistory";
 
-function StatRow({
-  label,
-  value,
-}: {
-  label: string;
-  value: string | number;
-}) {
+import type { SessionRecord } from "../../types/SessionRecord";
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function formatDuration(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  if (m === 0) return `${s}s`;
+  if (s === 0) return `${m}m`;
+  return `${m}m ${s}s`;
+}
+
+function formatDate(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function formatTime(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleTimeString(undefined, {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+function formatSkills(skills: string[]): string {
+  if (skills.length === 0) return "—";
+  const names = skills.map((s) =>
+    s.charAt(0).toUpperCase() + s.slice(1),
+  );
+  if (names.length <= 2) return names.join(" & ");
+  return `${names.slice(0, -1).join(", ")} & ${names[names.length - 1]}`;
+}
+
+function accuracy(record: SessionRecord): string {
+  const attempted = record.correct + record.incorrect;
+  if (attempted === 0) return "—";
+  return `${Math.round((record.correct / attempted) * 100)}%`;
+}
+
+// ── Table row ─────────────────────────────────────────────────────────────────
+
+function HistoryRow({ record }: { record: SessionRecord }) {
   return (
-    <div className="flex items-center justify-between border-b border-slate-100 py-3 last:border-0">
-      <span className="text-slate-600">
-        {label}
-      </span>
-      <span className="text-xl font-bold text-slate-800">
-        {value}
-      </span>
-    </div>
+    <tr className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
+      <td className="py-3 pr-4 text-sm text-slate-500 whitespace-nowrap">
+        {formatDate(record.completedAt)}
+        <span className="ml-2 text-slate-400">
+          {formatTime(record.completedAt)}
+        </span>
+      </td>
+      <td className="py-3 pr-4 text-sm font-medium text-slate-700 whitespace-nowrap">
+        {formatDuration(record.durationSeconds)}
+      </td>
+      <td className="py-3 pr-4 text-sm text-slate-600">
+        {formatSkills(record.skills)}
+      </td>
+      <td className="py-3 pr-4 text-center text-sm font-semibold text-green-700">
+        {record.correct}
+      </td>
+      <td className="py-3 pr-4 text-center text-sm font-semibold text-red-600">
+        {record.incorrect}
+      </td>
+      <td className="py-3 pr-4 text-center text-sm text-slate-500">
+        {record.skipped}
+      </td>
+      <td className="py-3 pr-4 text-center text-sm font-semibold text-slate-700">
+        {accuracy(record)}
+      </td>
+      <td className="py-3 text-center text-sm text-slate-500">
+        {record.bestStreak}
+      </td>
+    </tr>
   );
 }
 
-export default function StatisticsPage() {
-  const {
-    correct,
-    attempted,
-    skipped,
-    currentStreak,
-    bestStreak,
-  } = usePracticeSession();
+// ── StatisticsPage ────────────────────────────────────────────────────────────
 
-  const incorrect = attempted - correct;
-  const accuracy =
-    attempted > 0
-      ? Math.round((correct / attempted) * 100)
-      : 0;
+export default function StatisticsPage() {
+  const { history, clearHistory } = useSessionHistory();
 
   return (
     <Page title="Statistics">
 
-      <Card>
-        <h2 className="mb-4 text-lg font-semibold text-slate-700">
-          Current Session
-        </h2>
+      <div className="mb-4 flex items-center justify-between">
+        <p className="text-sm text-slate-500">
+          {history.length === 0
+            ? "No timed sessions recorded yet."
+            : `${history.length} session${history.length === 1 ? "" : "s"} recorded`}
+        </p>
 
-        <StatRow label="Correct" value={correct} />
-        <StatRow label="Incorrect" value={incorrect} />
-        <StatRow label="Skipped" value={skipped} />
-        <StatRow label="Attempted" value={attempted} />
-        <StatRow
-          label="Accuracy"
-          value={attempted > 0 ? `${accuracy}%` : "—"}
-        />
-        <StatRow
-          label="Current Streak"
-          value={`🔥 ${currentStreak}`}
-        />
-        <StatRow
-          label="Best Streak"
-          value={`🏆 ${bestStreak}`}
-        />
-      </Card>
+        {history.length > 0 && (
+          <button
+            className="rounded-lg bg-red-600 px-3 py-1.5 text-sm text-white hover:bg-red-700"
+            onClick={clearHistory}
+          >
+            Clear History
+          </button>
+        )}
+      </div>
+
+      {history.length === 0 ? (
+        <Card>
+          <p className="text-slate-500">
+            Complete a timed practice session to see your history here.
+          </p>
+        </Card>
+      ) : (
+        <Card>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-slate-200">
+                  <th className="pb-3 pr-4 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    Date
+                  </th>
+                  <th className="pb-3 pr-4 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    Duration
+                  </th>
+                  <th className="pb-3 pr-4 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    Topics
+                  </th>
+                  <th className="pb-3 pr-4 text-center text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    ✅
+                  </th>
+                  <th className="pb-3 pr-4 text-center text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    ❌
+                  </th>
+                  <th className="pb-3 pr-4 text-center text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    Skip
+                  </th>
+                  <th className="pb-3 pr-4 text-center text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    Acc.
+                  </th>
+                  <th className="pb-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    🏆
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {history.map((record, index) => (
+                  <HistoryRow
+                    key={`${record.completedAt}-${index}`}
+                    record={record}
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      )}
 
     </Page>
   );

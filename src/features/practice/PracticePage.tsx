@@ -7,6 +7,8 @@ import { TimerDisplay } from "./components/TimerDisplay";
 import { SessionSummary } from "./components/SessionSummary";
 
 import { usePracticeSession } from "./session/PracticeSessionContext";
+import { useSessionHistory } from "../../shared/hooks/useSessionHistory";
+import { useSettings } from "../settings/SettingsContext";
 
 // ── Duration options ──────────────────────────────────────────────────────────
 
@@ -59,6 +61,9 @@ export default function PracticePage() {
     resetSession,
   } = usePracticeSession();
 
+  const { settings } = useSettings();
+  const { addRecord } = useSessionHistory();
+
   // Selected duration in seconds (null = no timer)
   const [selectedDuration, setSelectedDuration] =
     useState<number | null>(null);
@@ -107,13 +112,23 @@ export default function PracticePage() {
 
     if (secondsRemaining <= 0) {
       stopTimer();
-      setSessionEnded(true);
-      setFinalStats({
+      const stats = {
         correct,
         incorrect: attempted - correct,
         skipped,
         bestStreak,
         durationSeconds: selectedDuration ?? 0,
+      };
+      setSessionEnded(true);
+      setFinalStats(stats);
+      addRecord({
+        completedAt: new Date().toISOString(),
+        durationSeconds: selectedDuration ?? 0,
+        skills: settings.enabledSkills,
+        correct: stats.correct,
+        incorrect: stats.incorrect,
+        skipped: stats.skipped,
+        bestStreak: stats.bestStreak,
       });
       return;
     }
