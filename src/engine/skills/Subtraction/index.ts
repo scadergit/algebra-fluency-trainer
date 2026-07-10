@@ -1,40 +1,44 @@
-import { randomInteger } from "../../random/randomInteger";
+import type { MathSkill } from '../MathSkill';
+import type { AppSettings } from '../../../shared/types/settings';
+import { randomInteger } from '../../random/randomInteger';
+import { createArithmeticProblem } from '../../problem/createArithmeticProblem';
 
-import type { AppSettings } from "../../../shared/types/settings";
+/**
+ * SubtractionSkill
+ *
+ * Generates simple subtraction problems.
+ *
+ * - Operands can be negative if `allowNegativeNumbers` is true.
+ * - The answer can be negative only if `allowNegativeAnswers` is true.
+ */
+export const SubtractionSkill: MathSkill = {
+  id: 'subtraction',
+  title: 'Subtraction',
+  category: 'Arithmetic',
 
-import type { Question } from "../../models/Question";
-import type { GeneratedProblem } from "../../models";
-import { createArithmeticProblem } from "../../problem/createArithmeticProblem";
+  generate(settings: AppSettings) {
+    const { maxNumber, allowNegativeNumbers, allowNegativeAnswers } = settings;
 
-import type { MathSkill } from "../MathSkill";
+    const min = allowNegativeNumbers ? -maxNumber : 0;
 
-export const subtractionSkill: MathSkill = {
-  id: "subtraction",
+    let a = randomInteger(min, maxNumber);
+    let b = randomInteger(min, maxNumber);
 
-  title: "Subtraction",
-
-  category: "Arithmetic",
-
-  generate(
-    settings: AppSettings,
-  ): GeneratedProblem {
-    let left = randomInteger(1, settings.maxNumber);
-    let right = randomInteger(1, settings.maxNumber);
-
-    //
     // Prevent negative answers unless explicitly allowed.
-    //
-    if (!settings.allowNegativeAnswers && left < right) {
-      [left, right] = [right, left];
+    if (!allowNegativeAnswers && a < b) {
+      [a, b] = [b, a]; // Swap to ensure a >= b
     }
 
-    const question: Question = {
+    const question = {
       id: crypto.randomUUID(),
-      topic: "Subtraction",
-      prompt: `${left} - ${right}`,
+      topic: 'Subtraction',
+      prompt: `${a} - ${b}`,
       difficulty: 1,
     };
 
-    return createArithmeticProblem(question, String(left - right));
+    return createArithmeticProblem(question, String(a - b));
   },
 };
+
+// Also export with lowercase name for compatibility with arithmetic.ts
+export const subtractionSkill = SubtractionSkill;

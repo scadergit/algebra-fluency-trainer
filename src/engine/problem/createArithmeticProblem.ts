@@ -1,6 +1,6 @@
 import type { Question } from "../models";
 import type { GeneratedProblem } from "../models";
-import type { EvaluationResult } from "./types";
+import type { EvaluationResult } from "../models/EvaluationResult";
 
 export function createArithmeticProblem(
   question: Question,

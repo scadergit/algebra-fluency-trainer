@@ -1,33 +1,39 @@
-import { randomInteger } from "../../random/randomInteger";
+import type { MathSkill } from '../MathSkill';
+import type { AppSettings } from '../../../shared/types/settings';
+import { randomInteger } from '../../random/randomInteger';
+import { createArithmeticProblem } from '../../problem/createArithmeticProblem';
 
-import type { AppSettings } from "../../../shared/types/settings";
+/**
+ * AdditionSkill
+ *
+ * Generates simple addition problems.
+ *
+ * - Operands are integers.
+ * - Supports negative numbers based on settings.
+ */
+export const AdditionSkill: MathSkill = {
+  id: 'addition',
+  title: 'Addition',
+  category: 'Arithmetic',
 
-import type { Question } from "../../models/Question";
-import type { GeneratedProblem } from "../../models";
-import { createArithmeticProblem } from "../../problem/createArithmeticProblem";
+  generate(settings: AppSettings) {
+    const { maxNumber, allowNegativeNumbers } = settings;
 
-import type { MathSkill } from "../MathSkill";
+    const min = allowNegativeNumbers ? -maxNumber : 0;
 
-export const additionSkill: MathSkill = {
-  id: "addition",
+    const a = randomInteger(min, maxNumber);
+    const b = randomInteger(min, maxNumber);
 
-  title: "Addition",
-
-  category: "Arithmetic",
-
-  generate(
-    settings: AppSettings,
-  ): GeneratedProblem {
-    const left = randomInteger(1, settings.maxNumber);
-    const right = randomInteger(1, settings.maxNumber);
-
-    const question: Question = {
+    const question = {
       id: crypto.randomUUID(),
-      topic: "Addition",
-      prompt: `${left} + ${right}`,
+      topic: 'Addition',
+      prompt: `${a} + ${b}`,
       difficulty: 1,
     };
 
-    return createArithmeticProblem(question, String(left + right));
+    return createArithmeticProblem(question, String(a + b));
   },
 };
+
+// Also export with lowercase name for compatibility with arithmetic.ts
+export const additionSkill = AdditionSkill;

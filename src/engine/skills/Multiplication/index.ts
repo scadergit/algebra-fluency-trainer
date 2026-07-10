@@ -1,33 +1,39 @@
-import { randomInteger } from "../../random/randomInteger";
-
+import type { MathSkill } from "../MathSkill";
 import type { AppSettings } from "../../../shared/types/settings";
-
-import type { Question } from "../../models/Question";
-import type { GeneratedProblem } from "../../models";
+import { randomInteger } from "../../random/randomInteger";
 import { createArithmeticProblem } from "../../problem/createArithmeticProblem";
 
-import type { MathSkill } from "../MathSkill";
-
-export const multiplicationSkill: MathSkill = {
+/**
+ * MultiplicationSkill
+ *
+ * Generates simple multiplication problems.
+ *
+ * - Operands are integers.
+ * - Supports negative numbers based on settings.
+ */
+export const MultiplicationSkill: MathSkill = {
   id: "multiplication",
-
   title: "Multiplication",
-
   category: "Arithmetic",
 
-  generate(
-    settings: AppSettings,
-  ): GeneratedProblem {
-    const left = randomInteger(1, settings.maxNumber);
-    const right = randomInteger(1, settings.maxNumber);
+  generate(settings: AppSettings) {
+    const { maxNumber, allowNegativeNumbers } = settings;
 
-    const question: Question = {
+    const min = allowNegativeNumbers ? -maxNumber : 0;
+
+    const a = randomInteger(min, maxNumber);
+    const b = randomInteger(min, maxNumber);
+
+    const question = {
       id: crypto.randomUUID(),
       topic: "Multiplication",
-      prompt: `${left} × ${right}`,
+      prompt: `${a} × ${b}`,
       difficulty: 1,
     };
 
-    return createArithmeticProblem(question, String(left * right));
+    return createArithmeticProblem(question, String(a * b));
   },
 };
+
+// Also export with lowercase name for compatibility with arithmetic.ts
+export const multiplicationSkill = MultiplicationSkill;

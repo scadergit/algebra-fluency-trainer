@@ -1,6 +1,2 @@
-import type { Question } from "../models";
-
-export interface EvaluationResult {
-  correct: boolean;
-}
-
+// Re-export from the canonical models location to avoid duplication.
+export type { EvaluationResult } from "../models/EvaluationResult";

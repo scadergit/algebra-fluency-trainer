@@ -1,5 +1,5 @@
 import type { Question } from "./Question";
-import type { EvaluationResult } from "../problem/types";
+import type { EvaluationResult } from "./EvaluationResult";
 
 export interface GeneratedProblem {
   question: Question;
