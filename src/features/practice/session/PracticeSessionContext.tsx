@@ -24,7 +24,7 @@ interface PracticeSession {
 
   bestStreak: number;
 
-  /** Average response time in milliseconds for attempted questions */
+  /** Average response time in milliseconds for correct answers only */
   avgResponseMs: number | null;
 
   /** Average response time per skill topic (ms) */
@@ -67,7 +67,7 @@ export function PracticeSessionProvider({ children }: Props) {
   const [currentStreak, setCurrentStreak] = useState(0);
   const [bestStreak, setBestStreak] = useState(0);
 
-  // All response times (ms) for attempted questions
+  // All response times (ms) for correct answers only
   const responseMsRef = useRef<number[]>([]);
   // Per-skill: topic → list of response times
   const skillMsRef = useRef<Record<string, number[]>>({});
@@ -152,7 +152,7 @@ export function PracticeSessionProvider({ children }: Props) {
   function markIncorrect() {
     const topic = problem.question.topic.toLowerCase();
     incrementPromptCount(topic);
-    recordResponseTime(topic);
+    // Do NOT record response time for incorrect answers — averages only count correct responses
     attemptedCountRef.current[topic] = (attemptedCountRef.current[topic] ?? 0) + 1;
     setAttemptedCountBySkill({ ...attemptedCountRef.current });
     setAttempted((v) => v + 1);
