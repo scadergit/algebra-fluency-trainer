@@ -3,6 +3,7 @@ import { Card } from "../../shared/components/Card";
 import { Page } from "../../shared/components/Page";
 import { useSettings } from "./SettingsContext";
 import { useSessionHistory } from "../../shared/hooks/useSessionHistory";
+import { useStudent } from "../student/StudentContext";
 
 const TEACHER_SECRET = "teachersecret";
 
@@ -59,6 +60,72 @@ function TeacherGate({ onUnlock }: TeacherGateProps) {
         </form>
       </div>
     </div>
+  );
+}
+
+// ── StudentManagement ─────────────────────────────────────────────────────────
+
+function StudentRow({ name }: { name: string }) {
+  const { setStudentSecret } = useStudent();
+  const [newSecret, setNewSecret] = useState("");
+  const [saved, setSaved] = useState(false);
+
+  function handleSave(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newSecret.trim()) return;
+    setStudentSecret(name, newSecret.trim());
+    setNewSecret("");
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  }
+
+  return (
+    <li className="flex items-center gap-3 border-b border-slate-100 py-3 last:border-0">
+      <span className="w-32 shrink-0 text-sm font-medium text-slate-700">
+        {name}
+      </span>
+      <form onSubmit={handleSave} className="flex flex-1 items-center gap-2">
+        <input
+          type="text"
+          className="w-40 rounded-lg border border-slate-300 px-3 py-1.5 text-sm focus:border-indigo-500 focus:outline-none"
+          placeholder="New secret word"
+          value={newSecret}
+          onChange={(e) => { setNewSecret(e.target.value); setSaved(false); }}
+        />
+        <button
+          type="submit"
+          disabled={!newSecret.trim()}
+          className="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-40"
+        >
+          Set
+        </button>
+        {saved && (
+          <span className="text-xs text-green-600">Saved!</span>
+        )}
+      </form>
+    </li>
+  );
+}
+
+function StudentManagement() {
+  const { knownStudents } = useStudent();
+
+  return (
+    <Card>
+      <h2 className="mb-1 text-xl font-semibold">Students</h2>
+      <p className="mb-4 text-sm text-slate-500">
+        Set or reset the secret word for any student.
+      </p>
+      {knownStudents.length === 0 ? (
+        <p className="text-sm text-slate-400">No students registered yet.</p>
+      ) : (
+        <ul>
+          {knownStudents.map((name) => (
+            <StudentRow key={name} name={name} />
+          ))}
+        </ul>
+      )}
+    </Card>
   );
 }
 
@@ -219,6 +286,9 @@ export default function SettingsPage() {
               Clear History
             </button>
           </Card>
+
+          {/* Student management */}
+          <StudentManagement />
 
         </div>
       )}

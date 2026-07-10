@@ -9,6 +9,7 @@ import { SessionSummary } from "./components/SessionSummary";
 import { usePracticeSession } from "./session/PracticeSessionContext";
 import { useSessionHistory } from "../../shared/hooks/useSessionHistory";
 import { useSettings } from "../settings/SettingsContext";
+import { useStudent } from "../student/StudentContext";
 
 // ── Duration options ──────────────────────────────────────────────────────────
 
@@ -27,6 +28,99 @@ const DURATION_OPTIONS: Array<{
 // Countdown steps shown inside the question card before the timer starts
 const COUNTDOWN_STEPS = ["Ready…", "Set…", "Go!"];
 const STEP_MS = 800;
+
+// ── StudentEntry ──────────────────────────────────────────────────────────────
+
+function StudentEntry() {
+  const { knownStudents, loginStudent, isKnownStudent } = useStudent();
+  const [name, setName] = useState("");
+  const [secret, setSecret] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  const returning = isKnownStudent(name.trim());
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    const ok = loginStudent(name, secret);
+    if (!ok) {
+      setError("Incorrect secret word. Please try again.");
+    }
+  }
+
+  function handlePickStudent(s: string) {
+    setName(s);
+    setSecret("");
+    setError(null);
+  }
+
+  return (
+    <div className="flex flex-col items-center justify-center py-16">
+      <div className="w-full max-w-sm rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
+        <h2 className="mb-2 text-center text-xl font-semibold text-slate-800">
+          Welcome!
+        </h2>
+        <p className="mb-6 text-center text-sm text-slate-500">
+          Enter your name and secret word to get started.
+        </p>
+
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <input
+            type="text"
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+            placeholder="Your name"
+            value={name}
+            autoFocus
+            onChange={(e) => { setName(e.target.value); setError(null); }}
+          />
+          <div>
+            <input
+              type="password"
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+              placeholder={returning ? "Secret word" : "Choose a secret word"}
+              value={secret}
+              onChange={(e) => { setSecret(e.target.value); setError(null); }}
+            />
+            {!returning && name.trim() && (
+              <p className="mt-1 text-xs text-slate-400">
+                New student — pick a secret word you'll remember.
+              </p>
+            )}
+          </div>
+          {error && (
+            <p className="text-sm text-red-500">{error}</p>
+          )}
+          <button
+            type="submit"
+            disabled={!name.trim() || !secret.trim()}
+            className="w-full rounded-lg bg-indigo-600 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-40"
+          >
+            Let's go →
+          </button>
+        </form>
+
+        {knownStudents.length > 0 && (
+          <div className="mt-6">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+              Previous students
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {knownStudents.map((s) => (
+                <button
+                  key={s}
+                  onClick={() => handlePickStudent(s)}
+                  className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-sm text-slate-700 hover:bg-indigo-50 hover:border-indigo-300 hover:text-indigo-700"
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 // ── StatCell ──────────────────────────────────────────────────────────────────
 
@@ -52,6 +146,20 @@ function StatCell({
 // ── PracticePage ──────────────────────────────────────────────────────────────
 
 export default function PracticePage() {
+  const { activeStudent } = useStudent();
+
+  if (!activeStudent) {
+    return (
+      <Page title="Practice">
+        <StudentEntry />
+      </Page>
+    );
+  }
+
+  return <PracticePageInner />;
+}
+
+function PracticePageInner() {
   const {
     problem: question,
     correct,
