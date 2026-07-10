@@ -19,6 +19,8 @@ interface PracticeSession {
 
   attempted: number;
 
+  skipped: number;
+
   currentStreak: number;
 
   bestStreak: number;
@@ -59,6 +61,9 @@ export function PracticeSessionProvider({
   const [attempted, setAttempted] =
     useState(0);
 
+  const [skipped, setSkipped] =
+    useState(0);
+
   const [currentStreak, setCurrentStreak] =
     useState(0);
 
@@ -93,6 +98,7 @@ export function PracticeSessionProvider({
   }
 
   function skipQuestion() {
+    setSkipped((value) => value + 1);
     setCurrentStreak(0);
     nextQuestion();
   }
@@ -100,6 +106,7 @@ export function PracticeSessionProvider({
   function resetSession() {
     setCorrect(0);
     setAttempted(0);
+    setSkipped(0);
     setCurrentStreak(0);
     setBestStreak(0);
     nextQuestion();
@@ -111,6 +118,7 @@ export function PracticeSessionProvider({
         problem,
         correct,
         attempted,
+        skipped,
         currentStreak,
         bestStreak,
         nextQuestion,

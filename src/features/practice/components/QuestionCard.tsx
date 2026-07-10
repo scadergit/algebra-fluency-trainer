@@ -97,6 +97,9 @@ export default function QuestionCard({
             if (event.key === "Enter") {
               submit();
             }
+            if (event.key === "Escape") {
+              onSkip();
+            }
           }}
         />
 

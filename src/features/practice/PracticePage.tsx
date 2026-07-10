@@ -4,11 +4,31 @@ import QuestionCard from "./components/QuestionCard";
 
 import { usePracticeSession } from "./session/PracticeSessionContext";
 
+function StatCell({
+  label,
+  value,
+}: {
+  label: string;
+  value: string | number;
+}) {
+  return (
+    <div>
+      <div className="text-sm text-slate-500">
+        {label}
+      </div>
+      <div className="text-3xl font-bold">
+        {value}
+      </div>
+    </div>
+  );
+}
+
 export default function PracticePage() {
   const {
     problem: question,
     correct,
     attempted,
+    skipped,
     currentStreak,
     bestStreak,
     markCorrect,
@@ -16,6 +36,12 @@ export default function PracticePage() {
     skipQuestion,
     resetSession,
   } = usePracticeSession();
+
+  const incorrect = attempted - correct;
+  const accuracy =
+    attempted > 0
+      ? `${Math.round((correct / attempted) * 100)}%`
+      : "—";
 
   return (
     <Page title="Practice">
@@ -29,48 +55,13 @@ export default function PracticePage() {
 
       <div className="mt-8 rounded-xl bg-white p-6 shadow-sm">
 
-        <div className="grid grid-cols-2 gap-4">
-
-          <div>
-            <div className="text-sm text-slate-500">
-              Correct
-            </div>
-
-            <div className="text-3xl font-bold">
-              {correct}
-            </div>
-          </div>
-
-          <div>
-            <div className="text-sm text-slate-500">
-              Attempted
-            </div>
-
-            <div className="text-3xl font-bold">
-              {attempted}
-            </div>
-          </div>
-
-          <div>
-            <div className="text-sm text-slate-500">
-              Current Streak
-            </div>
-
-            <div className="text-3xl font-bold">
-              🔥 {currentStreak}
-            </div>
-          </div>
-
-          <div>
-            <div className="text-sm text-slate-500">
-              Best Streak
-            </div>
-
-            <div className="text-3xl font-bold">
-              🏆 {bestStreak}
-            </div>
-          </div>
-
+        <div className="grid grid-cols-3 gap-4">
+          <StatCell label="Correct" value={correct} />
+          <StatCell label="Incorrect" value={incorrect} />
+          <StatCell label="Skipped" value={skipped} />
+          <StatCell label="Accuracy" value={accuracy} />
+          <StatCell label="🔥 Streak" value={currentStreak} />
+          <StatCell label="🏆 Best" value={bestStreak} />
         </div>
 
         <div className="mt-6 border-t pt-6">
