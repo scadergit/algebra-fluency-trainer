@@ -5,6 +5,36 @@ import { Card } from "../../../shared/components/Card";
 
 import type { GeneratedProblem } from "../../../engine/models";
 
+// Operators that, when preceding a negative number, create ambiguity
+const OPERATORS = new Set(["+", "-", "−", "×", "÷", "*", "/"]);
+
+/**
+ * Render a math prompt string so that a negative number is wrapped in
+ * parentheses whenever leaving it bare would create mathematical ambiguity
+ * or conflict with order of operations — i.e. whenever it follows an operator.
+ *
+ *   "5 - -3"  → "5 - (-3)"
+ *   "4 × -2"  → "4 × (-2)"
+ *   "5 + -3"  → "5 + (-3)"
+ *   "-2 + 4"  → "-2 + 4"   (leading operand: no parens needed)
+ */
+function renderPrompt(prompt: string): React.ReactNode {
+  const tokens = prompt.split(" ");
+  return tokens.map((token, i) => {
+    const prevToken = i > 0 ? tokens[i - 1] : null;
+    const needsParens =
+      /^-\d/.test(token) &&
+      prevToken !== null &&
+      OPERATORS.has(prevToken);
+    return (
+      <span key={i}>
+        {i > 0 && " "}
+        {needsParens ? `(${token})` : token}
+      </span>
+    );
+  });
+}
+
 interface QuestionCardProps {
   problem: GeneratedProblem;
   onCorrect(): void;
@@ -118,7 +148,7 @@ export default function QuestionCard({
                 {countdownLabel}
               </span>
             ) : (
-              <>{problem.question.prompt} =</>
+              <>{renderPrompt(problem.question.prompt)} =</>
             )}
           </div>
         </div>
