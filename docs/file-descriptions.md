@@ -11,8 +11,6 @@ A short description of every file in the project, organized by folder.
 | `.gitignore` | Tells Git which files/folders to ignore (node_modules, dist, etc.) |
 | `.oxlintrc.json` | Config for the Oxlint linter (fast Rust-based JS/TS linter) |
 | `algebra-fluency-trainer.zip` | Archived snapshot of the project |
-| `ARCHITECTURE_DECISIONS.md` | Documents key architectural choices and the reasoning behind them |
-| `FEATURES.md` | High-level feature list and roadmap notes |
 | `index.html` | Root HTML shell — Vite injects the React app bundle here |
 | `package-lock.json` | Exact dependency lock file for reproducible installs |
 | `package.json` | Project metadata, scripts (`dev`, `build`, `test`), and dependencies |
@@ -31,8 +29,9 @@ A short description of every file in the project, organized by folder.
 
 | File | Description |
 |------|-------------|
-| `docs/architecture.md` | Detailed architecture overview (layers, data flow, conventions) |
-| `docs/coding-standards.md` | Coding style rules and patterns the project follows |
+| `docs/architecture.md` | Architecture overview, layer descriptions, and all ADRs |
+| `docs/coding-standards.md` | Coding style, naming conventions, and testing rules |
+| `docs/features.md` | Full feature roadmap with implemented (✅) and planned features |
 | `docs/file-descriptions.md` | This file — short description of every file in the project |
 
 ---
