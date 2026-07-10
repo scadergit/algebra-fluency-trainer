@@ -20,8 +20,6 @@ interface PracticeSession {
 
   attempted: number;
 
-  skipped: number;
-
   currentStreak: number;
 
   bestStreak: number;
@@ -47,8 +45,6 @@ interface PracticeSession {
 
   markIncorrect(): void;
 
-  skipQuestion(): void;
-
   resetSession(): void;
 }
 
@@ -68,7 +64,6 @@ export function PracticeSessionProvider({ children }: Props) {
 
   const [correct, setCorrect] = useState(0);
   const [attempted, setAttempted] = useState(0);
-  const [skipped, setSkipped] = useState(0);
   const [currentStreak, setCurrentStreak] = useState(0);
   const [bestStreak, setBestStreak] = useState(0);
 
@@ -165,17 +160,9 @@ export function PracticeSessionProvider({ children }: Props) {
     nextQuestion();
   }
 
-  function skipQuestion() {
-    incrementPromptCount(problem.question.topic.toLowerCase());
-    setSkipped((v) => v + 1);
-    setCurrentStreak(0);
-    nextQuestion();
-  }
-
   function resetSession() {
     setCorrect(0);
     setAttempted(0);
-    setSkipped(0);
     setCurrentStreak(0);
     setBestStreak(0);
     responseMsRef.current = [];
@@ -197,7 +184,6 @@ export function PracticeSessionProvider({ children }: Props) {
         problem,
         correct,
         attempted,
-        skipped,
         currentStreak,
         bestStreak,
         avgResponseMs,
@@ -208,7 +194,6 @@ export function PracticeSessionProvider({ children }: Props) {
         nextQuestion,
         markCorrect,
         markIncorrect,
-        skipQuestion,
         resetSession,
       }}
     >

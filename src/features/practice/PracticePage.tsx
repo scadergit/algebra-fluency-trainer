@@ -56,7 +56,6 @@ export default function PracticePage() {
     problem: question,
     correct,
     attempted,
-    skipped,
     currentStreak,
     bestStreak,
     avgResponseMs,
@@ -66,7 +65,6 @@ export default function PracticePage() {
     attemptedCountBySkill,
     markCorrect,
     markIncorrect,
-    skipQuestion,
     resetSession,
   } = usePracticeSession();
 
@@ -95,7 +93,6 @@ export default function PracticePage() {
   const [finalStats, setFinalStats] = useState<{
     correct: number;
     incorrect: number;
-    skipped: number;
     bestStreak: number;
     durationSeconds: number;
     avgResponseMs: number | null;
@@ -108,7 +105,6 @@ export default function PracticePage() {
   const sessionRef = useRef({
     correct,
     attempted,
-    skipped,
     bestStreak,
     avgResponseMs,
     avgResponseMsBySkill,
@@ -121,7 +117,6 @@ export default function PracticePage() {
   sessionRef.current = {
     correct,
     attempted,
-    skipped,
     bestStreak,
     avgResponseMs,
     avgResponseMsBySkill,
@@ -171,21 +166,19 @@ export default function PracticePage() {
       const stats = {
         correct: s.correct,
         incorrect: s.attempted - s.correct,
-        skipped: s.skipped,
         bestStreak: s.bestStreak,
         durationSeconds: s.selectedDuration ?? 0,
         avgResponseMs: s.avgResponseMs,
       };
       setPhase("ended");
       setFinalStats(stats);
-      addRecord({
-        completedAt: new Date().toISOString(),
-        durationSeconds: s.selectedDuration ?? 0,
-        skills: s.enabledSkills,
-        correct: stats.correct,
-        incorrect: stats.incorrect,
-        skipped: stats.skipped,
-        bestStreak: stats.bestStreak,
+        addRecord({
+          completedAt: new Date().toISOString(),
+          durationSeconds: s.selectedDuration ?? 0,
+          skills: s.enabledSkills,
+          correct: stats.correct,
+          incorrect: stats.incorrect,
+          bestStreak: stats.bestStreak,
         avgResponseMs: stats.avgResponseMs ?? undefined,
         avgResponseMsBySkill:
           Object.keys(s.avgResponseMsBySkill).length > 0
@@ -263,7 +256,6 @@ export default function PracticePage() {
           <SessionSummary
             correct={finalStats.correct}
             incorrect={finalStats.incorrect}
-            skipped={finalStats.skipped}
             bestStreak={finalStats.bestStreak}
             durationSeconds={finalStats.durationSeconds}
             avgResponseMs={finalStats.avgResponseMs ?? undefined}
@@ -309,11 +301,9 @@ export default function PracticePage() {
         {/* Question card — receives countdownLabel during countdown phase */}
         <div className="flex-1">
           <QuestionCard
-            key={question.question.id}
             problem={question}
             onCorrect={markCorrect}
             onIncorrect={markIncorrect}
-            onSkip={skipQuestion}
             countdownLabel={countdownLabel}
           />
         </div>
@@ -340,7 +330,6 @@ export default function PracticePage() {
 
           <StatCell label="Correct" value={correct} />
           <StatCell label="Incorrect" value={incorrect} />
-          <StatCell label="Skipped" value={skipped} />
           <StatCell label="Accuracy" value={accuracy} />
           <StatCell label="🔥 Streak" value={currentStreak} />
           <StatCell label="🏆 Best" value={bestStreak} />

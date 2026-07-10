@@ -47,7 +47,7 @@ function buildSkillStats(history: SessionRecord[]): SkillStats[] {
         totalPrompts += prompts;
       } else {
         // Old sessions: distribute session totals evenly across active skills
-        const sessionTotal = r.correct + r.incorrect + r.skipped;
+        const sessionTotal = r.correct + r.incorrect;
         totalPrompts += Math.round(sessionTotal / skillCount);
       }
 
