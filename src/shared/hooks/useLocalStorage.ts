@@ -21,6 +21,13 @@ export function useLocalStorage<T>(
     loadFromStorage(key, initialValue),
   );
 
+  // Re-read from storage whenever the key changes (e.g. student switch)
+  useEffect(() => {
+    setValueState(loadFromStorage(key, initialValue));
+  // initialValue is intentionally excluded — we only want to re-read on key change
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
+
   // Re-read from storage whenever another instance (same or different tab) writes
   useEffect(() => {
     function handleChange(e: Event) {

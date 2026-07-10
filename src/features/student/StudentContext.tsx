@@ -38,6 +38,8 @@ interface StudentContextValue {
   clearActiveStudent: () => void;
   /** Teacher override: set (or reset) the secret for any student by name */
   setStudentSecret: (name: string, newSecret: string) => void;
+  /** Teacher override: switch the active student without requiring their secret */
+  loginStudentAsTeacher: (name: string) => void;
 }
 
 const StudentContext = createContext<StudentContextValue | null>(null);
@@ -107,6 +109,13 @@ export function StudentProvider({ children }: { children: ReactNode }) {
     saveToStorage(ACTIVE_STUDENT_KEY, null);
   }, []);
 
+  const loginStudentAsTeacher = useCallback((name: string) => {
+    const trimmedName = name.trim();
+    if (!trimmedName) return;
+    setActiveStudentState(trimmedName);
+    saveToStorage(ACTIVE_STUDENT_KEY, trimmedName);
+  }, []);
+
   const setStudentSecret = useCallback(
     (name: string, newSecret: string) => {
       const trimmedName = name.trim();
@@ -129,6 +138,7 @@ export function StudentProvider({ children }: { children: ReactNode }) {
         isKnownStudent,
         clearActiveStudent,
         setStudentSecret,
+        loginStudentAsTeacher,
       }}
     >
       {children}

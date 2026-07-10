@@ -6,6 +6,8 @@ import {
 import type { ReactNode } from "react";
 
 import { useLocalStorage } from "../../shared/hooks/useLocalStorage";
+import { loadFromStorage } from "../../shared/utils/storage";
+import { useStudent } from "../student/StudentContext";
 
 import type { AppSettings } from "../../shared/types/settings";
 
@@ -32,6 +34,12 @@ const defaultSettings: AppSettings = {
   ],
 };
 
+/** Returns the localStorage key for a given student's settings. */
+function studentSettingsKey(student: string | null): string {
+  if (!student) return "settings";
+  return `settings:${student.toLowerCase().trim()}`;
+}
+
 const SettingsContext =
   createContext<SettingsContextValue | null>(
     null,
@@ -44,10 +52,17 @@ interface SettingsProviderProps {
 export function SettingsProvider({
   children,
 }: SettingsProviderProps) {
+  const { activeStudent } = useStudent();
+
+  // New students inherit from the stored default settings (key "settings"),
+  // falling back to the hardcoded defaults if none have been saved yet.
+  const inheritedDefault: AppSettings =
+    loadFromStorage<AppSettings>("settings", defaultSettings);
+
   const [settings, setSettings] =
     useLocalStorage<AppSettings>(
-      "settings",
-      defaultSettings,
+      studentSettingsKey(activeStudent),
+      inheritedDefault,
     );
 
   return (
